@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Chrome } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,10 +11,26 @@ import { AuthLayout } from '@/layouts/AuthLayout';
 import { getApiErrorMessage } from '@/services/api';
 import { useCurrentAdmin, useLogin } from '@/features/auth/useAuth';
 import { loginFormSchema, type LoginFormData } from '@/features/auth/auth.schemas';
+import { env } from '@/config/env';
+import { googleLogin } from '@/services/auth.service';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize(input: { client_id: string; callback(response: { credential?: string }): void }): void;
+          prompt(): void;
+        };
+      };
+    };
+  }
+}
 
 export function LoginPage() {
   const [error, setError] = useState('');
   const login = useLogin();
+  const queryClient = useQueryClient();
   const currentAdmin = useCurrentAdmin();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,13 +54,44 @@ export function LoginPage() {
     }
   }
 
+  async function handleGoogleLogin() {
+    setError('');
+    try {
+      await loadGoogleIdentityScript();
+      window.google?.accounts.id.initialize({
+        client_id: env.VITE_GOOGLE_CLIENT_ID,
+        callback: async ({ credential }) => {
+          if (!credential) {
+            setError('Nao foi possivel autenticar com Google.');
+            return;
+          }
+
+          try {
+            const admin = await googleLogin(credential);
+            queryClient.setQueryData(['current-admin'], admin);
+            navigate('/admin', { replace: true });
+          } catch (requestError) {
+            setError(getApiErrorMessage(requestError));
+          }
+        }
+      });
+      window.google?.accounts.id.prompt();
+    } catch {
+      setError('Nao foi possivel carregar o login Google.');
+    }
+  }
+
   return (
     <AuthLayout>
-      <SecondaryButton type="button">
-        <Chrome size={18} />
-        Continuar com Google
-      </SecondaryButton>
-      <Divider>ou</Divider>
+      {env.VITE_GOOGLE_CLIENT_ID ? (
+        <>
+          <SecondaryButton type="button" onClick={handleGoogleLogin}>
+            <Chrome size={18} />
+            Continuar com Google
+          </SecondaryButton>
+          <Divider>ou</Divider>
+        </>
+      ) : null}
       <Form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           label="E-mail"
@@ -67,6 +115,30 @@ export function LoginPage() {
       <RecoveryLink to="/forgot-password">Esqueci minha senha</RecoveryLink>
     </AuthLayout>
   );
+}
+
+function loadGoogleIdentityScript() {
+  return new Promise<void>((resolve, reject) => {
+    if (window.google?.accounts.id) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Google script failed')), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Google script failed'));
+    document.head.appendChild(script);
+  });
 }
 
 const Form = styled.form`

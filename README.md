@@ -58,6 +58,7 @@ Crie um `.env` local com base em `.env.example`.
 Variavel publica:
 
 - `VITE_API_URL`
+- `VITE_GOOGLE_CLIENT_ID`
 
 Somente variaveis seguras para exposicao publica devem ser adicionadas ao frontend.
 

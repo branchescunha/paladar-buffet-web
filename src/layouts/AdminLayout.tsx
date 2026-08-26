@@ -1,4 +1,5 @@
 import { LogOut, Menu } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button } from '@/components/Button';
@@ -20,6 +21,7 @@ const navItems = [
 ] as const;
 
 export function AdminLayout() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { data: admin } = useCurrentAdmin();
   const logout = useLogout();
   const navigate = useNavigate();
@@ -31,11 +33,11 @@ export function AdminLayout() {
 
   return (
     <Shell>
-      <Sidebar aria-label="Navegacao administrativa">
+      <Sidebar aria-label="Navegacao administrativa" $mobileOpen={mobileOpen}>
         <Logo>Paladar Buffet</Logo>
         <nav>
           {navItems.map(([label, path]) => (
-            <NavItem key={path} to={path} end={path === '/admin'}>
+            <NavItem key={path} to={path} end={path === '/admin'} onClick={() => setMobileOpen(false)}>
               {label}
             </NavItem>
           ))}
@@ -43,7 +45,11 @@ export function AdminLayout() {
       </Sidebar>
       <Content>
         <Header>
-          <MobileMenu aria-label="Abrir navegacao">
+          <MobileMenu
+            aria-label={mobileOpen ? 'Fechar navegacao' : 'Abrir navegacao'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((current) => !current)}
+          >
             <Menu size={20} />
           </MobileMenu>
           <UserInfo>
@@ -73,7 +79,7 @@ const Shell = styled.div`
   }
 `;
 
-const Sidebar = styled.aside`
+const Sidebar = styled.aside<{ $mobileOpen: boolean }>`
   background: ${({ theme }) => theme.colors.deepGreen};
   color: ${({ theme }) => theme.colors.white};
   padding: ${({ theme }) => theme.spacing.lg};
@@ -84,7 +90,11 @@ const Sidebar = styled.aside`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    display: none;
+    display: ${({ $mobileOpen }) => ($mobileOpen ? 'block' : 'none')};
+    position: fixed;
+    inset: 4.5rem 0 auto 0;
+    z-index: ${({ theme }) => theme.zIndex.sidebar};
+    min-height: calc(100vh - 4.5rem);
   }
 `;
 
@@ -124,15 +134,16 @@ const Header = styled.header`
 `;
 
 const MobileMenu = styled.button`
-  display: none;
+  display: inline-flex;
   border: 0;
   background: transparent;
   color: ${({ theme }) => theme.colors.deepGreen};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    display: inline-flex;
-    margin-right: auto;
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: none;
   }
+
+  margin-right: auto;
 `;
 
 const UserInfo = styled.div`

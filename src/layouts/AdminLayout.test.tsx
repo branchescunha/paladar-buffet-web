@@ -41,4 +41,28 @@ describe('AdminLayout', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sair' }));
     expect(await screen.findByText('Login')).toBeInTheDocument();
   });
+
+  it('opens mobile navigation from the header menu button', async () => {
+    fetchCurrentAdminMock.mockResolvedValue({
+      id: '1',
+      name: 'Andre',
+      email: 'admin@paladarbuffet.com.br',
+      role: 'ADMIN',
+      avatarUrl: null
+    });
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<h1>Dashboard</h1>} />
+        </Route>
+      </Routes>,
+      ['/admin']
+    );
+
+    const menuButton = await screen.findByRole('button', { name: 'Abrir navegacao' });
+    await userEvent.click(menuButton);
+
+    expect(screen.getByRole('button', { name: 'Fechar navegacao' })).toHaveAttribute('aria-expanded', 'true');
+  });
 });
