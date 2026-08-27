@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Chrome } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button, SecondaryButton } from '@/components/Button';
+import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { getApiErrorMessage } from '@/services/api';
@@ -20,7 +19,10 @@ declare global {
       accounts: {
         id: {
           initialize(input: { client_id: string; callback(response: { credential?: string }): void }): void;
-          prompt(): void;
+          renderButton(
+            parent: HTMLElement,
+            options: { theme: 'outline'; size: 'large'; text: 'continue_with'; width?: number }
+          ): void;
         };
       };
     };
@@ -29,6 +31,7 @@ declare global {
 
 export function LoginPage() {
   const [error, setError] = useState('');
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const login = useLogin();
   const queryClient = useQueryClient();
   const currentAdmin = useCurrentAdmin();
@@ -40,10 +43,6 @@ export function LoginPage() {
     defaultValues: { email: '', password: '' }
   });
 
-  if (currentAdmin.data) {
-    return <Navigate to="/admin" replace />;
-  }
-
   async function onSubmit(data: LoginFormData) {
     setError('');
     try {
@@ -54,41 +53,66 @@ export function LoginPage() {
     }
   }
 
-  async function handleGoogleLogin() {
-    setError('');
-    try {
-      await loadGoogleIdentityScript();
-      window.google?.accounts.id.initialize({
-        client_id: env.VITE_GOOGLE_CLIENT_ID,
-        callback: async ({ credential }) => {
-          if (!credential) {
-            setError('Nao foi possivel autenticar com Google.');
-            return;
-          }
-
-          try {
-            const admin = await googleLogin(credential);
-            queryClient.setQueryData(['current-admin'], admin);
-            navigate('/admin', { replace: true });
-          } catch (requestError) {
-            setError(getApiErrorMessage(requestError));
-          }
-        }
-      });
-      window.google?.accounts.id.prompt();
-    } catch {
-      setError('Nao foi possivel carregar o login Google.');
+  useEffect(() => {
+    if (!env.VITE_GOOGLE_CLIENT_ID || !googleButtonRef.current) {
+      return;
     }
+
+    let isMounted = true;
+
+    async function initializeGoogleLogin() {
+      try {
+        await loadGoogleIdentityScript();
+        if (!isMounted || !googleButtonRef.current) {
+          return;
+        }
+
+        window.google?.accounts.id.initialize({
+          client_id: env.VITE_GOOGLE_CLIENT_ID,
+          callback: async ({ credential }) => {
+            if (!credential) {
+              setError('Nao foi possivel autenticar com Google.');
+              return;
+            }
+
+            try {
+              const admin = await googleLogin(credential);
+              queryClient.setQueryData(['current-admin'], admin);
+              navigate('/admin', { replace: true });
+            } catch (requestError) {
+              setError(getApiErrorMessage(requestError));
+            }
+          }
+        });
+        window.google?.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          width: googleButtonRef.current.offsetWidth
+        });
+      } catch {
+        if (isMounted) {
+          setError('Nao foi possivel carregar o login Google.');
+        }
+      }
+    }
+
+    void initializeGoogleLogin();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate, queryClient]);
+
+  if (currentAdmin.data) {
+    return <Navigate to="/admin" replace />;
   }
 
   return (
     <AuthLayout>
       {env.VITE_GOOGLE_CLIENT_ID ? (
         <>
-          <SecondaryButton type="button" onClick={handleGoogleLogin}>
-            <Chrome size={18} />
-            Continuar com Google
-          </SecondaryButton>
+          <GoogleButtonMount ref={googleButtonRef} aria-label="Continuar com Google" />
           <Divider>ou</Divider>
         </>
       ) : null}
@@ -144,6 +168,10 @@ function loadGoogleIdentityScript() {
 const Form = styled.form`
   display: grid;
   gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const GoogleButtonMount = styled.div`
+  min-height: 40px;
 `;
 
 const Divider = styled.div`

@@ -1,15 +1,18 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Route, Routes } from 'react-router-dom';
 import { LoginPage } from './LoginPage';
 import { renderWithProviders } from '@/test/render';
+import { env } from '@/config/env';
 
 const loginMock = vi.fn();
 const fetchCurrentAdminMock = vi.fn();
+const googleLoginMock = vi.fn();
 
 vi.mock('@/services/auth.service', () => ({
   login: (...args: unknown[]) => loginMock(...args),
+  googleLogin: (...args: unknown[]) => googleLoginMock(...args),
   fetchCurrentAdmin: () => fetchCurrentAdminMock(),
   logout: vi.fn(),
   requestPasswordReset: vi.fn(),
@@ -19,6 +22,12 @@ vi.mock('@/services/auth.service', () => ({
 describe('LoginPage', () => {
   beforeEach(() => {
     fetchCurrentAdminMock.mockRejectedValue(new Error('unauthenticated'));
+    env.VITE_GOOGLE_CLIENT_ID = '';
+    window.google = undefined;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it('validates required login fields', async () => {
@@ -63,5 +72,24 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
     await waitFor(() => expect(screen.getByText('E-mail ou senha invalidos.')).toBeInTheDocument());
+  });
+
+  it('initializes Google Identity Services and renders its login button', async () => {
+    const initialize = vi.fn();
+    const renderButton = vi.fn();
+    env.VITE_GOOGLE_CLIENT_ID = 'google-client-id';
+    window.google = {
+      accounts: {
+        id: {
+          initialize,
+          renderButton
+        }
+      }
+    };
+
+    renderWithProviders(<LoginPage />, ['/login']);
+
+    await waitFor(() => expect(initialize).toHaveBeenCalledWith(expect.objectContaining({ client_id: 'google-client-id' })));
+    expect(renderButton).toHaveBeenCalledWith(expect.any(HTMLElement), expect.objectContaining({ text: 'continue_with' }));
   });
 });
