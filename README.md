@@ -1,6 +1,6 @@
 # Paladar Buffet Web
 
-Aplicacao web administrativa do Paladar Buffet. Este projeto entrega a fundacao frontend da versao 1.0.0, com login administrativo, recuperacao de senha, rotas protegidas e shell inicial do painel.
+Aplicacao web do Paladar Buffet. O projeto inclui site publico institucional, formulario publico de orcamento e area administrativa protegida.
 
 ## Stack
 
@@ -20,6 +20,9 @@ Aplicacao web administrativa do Paladar Buffet. Este projeto entrega a fundacao 
 ## Funcionalidades
 
 - Tela de login administrativo
+- Home publica em `/`
+- Formulario publico de orcamento em `/orcamento`
+- Politica de privacidade em `/privacidade`
 - Botao "Continuar com Google" preparado para integracao
 - Validacao de formulario com Zod
 - Recuperacao de senha
@@ -30,8 +33,10 @@ Aplicacao web administrativa do Paladar Buffet. Este projeto entrega a fundacao 
 - Logout
 - Cliente Axios com cookies e header CSRF
 - Tema base com tokens oficiais do Paladar Buffet
+- Assets oficiais de logo e hero do proprietario
+- SEO base, canonical, Open Graph e JSON-LD sem dados inventados
 - Pagina 404
-- Playwright configurado para smoke test futuro
+- Playwright configurado para smoke tests publico e administrativo
 
 ## Estrutura
 
@@ -42,6 +47,7 @@ src/
   config/
   features/
     auth/
+    quote/
   layouts/
   pages/
   routes/
@@ -77,6 +83,8 @@ Somente variaveis seguras para exposicao publica devem ser adicionadas ao fronte
 A sessao administrativa e controlada pelo backend via cookie HttpOnly. O frontend nao usa `localStorage` para armazenar token sensivel.
 
 Nao existe tela de cadastro. Administradores devem ser criados previamente no banco pela API/seed/processo operacional autorizado.
+
+O formulario publico de orcamento nao cria conta de cliente e nao concede acesso ao painel administrativo.
 
 ## Desenvolvimento Local
 

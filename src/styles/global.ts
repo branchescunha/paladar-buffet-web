@@ -17,7 +17,9 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   button,
-  input {
+  input,
+  select,
+  textarea {
     font: inherit;
   }
 
@@ -27,5 +29,9 @@ export const GlobalStyle = createGlobalStyle`
 
   a {
     color: inherit;
+  }
+
+  img {
+    max-width: 100%;
   }
 `;

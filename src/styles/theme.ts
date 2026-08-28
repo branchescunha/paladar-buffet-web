@@ -34,7 +34,8 @@ export const theme = {
     panel: '0 18px 45px rgba(16, 23, 19, 0.12)'
   },
   typography: {
-    fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily: "'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    headingFamily: "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
     headingWeight: 700,
     bodyWeight: 400
   },
