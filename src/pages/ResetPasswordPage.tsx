@@ -61,7 +61,7 @@ const Form = styled.form`
 
 const Success = styled.p`
   margin: 0;
-  color: ${({ theme }) => theme.colors.deepGreen};
+  color: ${({ theme }) => theme.colors.textStrong};
 `;
 
 const Error = styled.p`
@@ -70,7 +70,7 @@ const Error = styled.p`
 `;
 
 const BackLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.deepGreen};
+  color: ${({ theme }) => theme.colors.textStrong};
   font-weight: 700;
   text-align: center;
 `;

@@ -47,7 +47,7 @@ export function ForgotPasswordPage() {
         {message ? <Success role="status">{message}</Success> : null}
         {error ? <Error role="alert">{error}</Error> : null}
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Enviando...' : 'Enviar instrucoes'}
+          {mutation.isPending ? 'Enviando...' : 'Enviar instruções'}
         </Button>
       </Form>
       <BackLink to="/login">Voltar para login</BackLink>
@@ -62,7 +62,7 @@ const Form = styled.form`
 
 const Success = styled.p`
   margin: 0;
-  color: ${({ theme }) => theme.colors.deepGreen};
+  color: ${({ theme }) => theme.colors.textStrong};
 `;
 
 const Error = styled.p`
@@ -71,7 +71,7 @@ const Error = styled.p`
 `;
 
 const BackLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.deepGreen};
+  color: ${({ theme }) => theme.colors.textStrong};
   font-weight: 700;
   text-align: center;
 `;

@@ -4,8 +4,8 @@ import styled from 'styled-components';
 export function NotFoundPage() {
   return (
     <Page>
-      <h1>Pagina nao encontrada</h1>
-      <Link to="/admin">Voltar ao painel</Link>
+      <h1>Página não encontrada</h1>
+      <Link to="/">Voltar ao site</Link>
     </Page>
   );
 }
@@ -20,11 +20,11 @@ const Page = styled.main`
 
   h1 {
     margin: 0;
-    color: ${({ theme }) => theme.colors.deepGreen};
+    color: ${({ theme }) => theme.colors.textStrong};
   }
 
   a {
-    color: ${({ theme }) => theme.colors.paladarOrange};
+    color: ${({ theme }) => theme.colors.accent};
     font-weight: 700;
   }
 `;

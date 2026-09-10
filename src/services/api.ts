@@ -20,14 +20,14 @@ api.interceptors.request.use((config) => {
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const message = error.response?.data?.error?.message;
-    return typeof message === 'string' ? message : 'Nao foi possivel concluir a operacao.';
+    return typeof message === 'string' ? message : 'Não foi possível concluir a operação.';
   }
 
   if (isApiErrorLike(error)) {
     return error.response.data.error.message;
   }
 
-  return 'Nao foi possivel concluir a operacao.';
+  return 'Não foi possível concluir a operação.';
 }
 
 function isApiErrorLike(error: unknown): error is { response: { data: { error: { message: string } } } } {

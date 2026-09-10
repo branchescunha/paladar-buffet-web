@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
 import { AuthLayout } from '@/layouts/AuthLayout';
@@ -31,6 +32,7 @@ declare global {
 
 export function LoginPage() {
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const login = useLogin();
   const queryClient = useQueryClient();
@@ -46,8 +48,8 @@ export function LoginPage() {
   async function onSubmit(data: LoginFormData) {
     setError('');
     try {
-      await login.mutateAsync(data);
-      navigate(redirectTo, { replace: true });
+      const admin = await login.mutateAsync(data);
+      navigate(admin.mustChangePassword ? '/change-password' : redirectTo, { replace: true });
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     }
@@ -71,14 +73,14 @@ export function LoginPage() {
           client_id: env.VITE_GOOGLE_CLIENT_ID,
           callback: async ({ credential }) => {
             if (!credential) {
-              setError('Nao foi possivel autenticar com Google.');
+              setError('Não foi possível autenticar com Google.');
               return;
             }
 
             try {
               const admin = await googleLogin(credential);
               queryClient.setQueryData(['current-admin'], admin);
-              navigate('/admin', { replace: true });
+              navigate(admin.mustChangePassword ? '/change-password' : '/admin', { replace: true });
             } catch (requestError) {
               setError(getApiErrorMessage(requestError));
             }
@@ -92,7 +94,7 @@ export function LoginPage() {
         });
       } catch {
         if (isMounted) {
-          setError('Nao foi possivel carregar o login Google.');
+          setError('Não foi possível carregar o login Google.');
         }
       }
     }
@@ -105,7 +107,7 @@ export function LoginPage() {
   }, [navigate, queryClient]);
 
   if (currentAdmin.data) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to={currentAdmin.data.mustChangePassword ? '/change-password' : '/admin'} replace />;
   }
 
   return (
@@ -126,10 +128,20 @@ export function LoginPage() {
         />
         <FormField
           label="Senha"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           autoComplete="current-password"
           {...form.register('password')}
           error={form.formState.errors.password?.message}
+          trailingAction={
+            <button
+              type="button"
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((visible) => !visible)}
+            >
+              {showPassword ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
+            </button>
+          }
         />
         {error ? <SubmitError role="alert">{error}</SubmitError> : null}
         <Button type="submit" disabled={login.isPending}>
@@ -175,7 +187,7 @@ const GoogleButtonMount = styled.div`
 `;
 
 const Divider = styled.div`
-  color: ${({ theme }) => theme.colors.oliveGray};
+  color: ${({ theme }) => theme.colors.textMuted};
   text-align: center;
 `;
 
@@ -185,7 +197,7 @@ const SubmitError = styled.p`
 `;
 
 const RecoveryLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.deepGreen};
+  color: ${({ theme }) => theme.colors.textStrong};
   font-weight: 700;
   text-align: center;
 `;

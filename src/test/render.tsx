@@ -2,9 +2,8 @@ import type { PropsWithChildren } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
-import { theme } from '@/styles/theme';
 import { GlobalStyle } from '@/styles/global';
+import { ThemeModeProvider } from '@/styles/ThemeModeProvider';
 
 export function renderWithProviders(ui: React.ReactElement, initialEntries = ['/']) {
   const queryClient = new QueryClient({
@@ -14,10 +13,10 @@ export function renderWithProviders(ui: React.ReactElement, initialEntries = ['/
   function Wrapper({ children }: PropsWithChildren) {
     return (
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
+        <ThemeModeProvider>
           <GlobalStyle />
           <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-        </ThemeProvider>
+        </ThemeModeProvider>
       </QueryClientProvider>
     );
   }

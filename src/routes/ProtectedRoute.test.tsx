@@ -40,7 +40,8 @@ describe('ProtectedRoute', () => {
       name: 'Andre',
       email: 'admin@paladarbuffet.com.br',
       role: 'ADMIN',
-      avatarUrl: null
+      avatarUrl: null,
+      mustChangePassword: false
     });
     renderWithProviders(
       <Routes>
@@ -52,5 +53,28 @@ describe('ProtectedRoute', () => {
     );
 
     expect(await screen.findByText('Protected Admin')).toBeInTheDocument();
+  });
+
+  it('redirects authenticated admins to password change while it is required', async () => {
+    fetchCurrentAdminMock.mockResolvedValue({
+      id: '1',
+      name: 'Andre',
+      email: 'admin@paladarbuffet.com.br',
+      role: 'ADMIN',
+      avatarUrl: null,
+      mustChangePassword: true
+    });
+    renderWithProviders(
+      <Routes>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<h1>Protected Admin</h1>} />
+          <Route path="/change-password" element={<h1>Change Password</h1>} />
+        </Route>
+      </Routes>,
+      ['/admin']
+    );
+
+    expect(await screen.findByText('Change Password')).toBeInTheDocument();
+    expect(screen.queryByText('Protected Admin')).not.toBeInTheDocument();
   });
 });

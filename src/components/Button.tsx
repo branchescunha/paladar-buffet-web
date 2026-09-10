@@ -7,9 +7,9 @@ export const Button = styled.button`
   justify-content: center;
   gap: ${({ theme }) => theme.spacing.sm};
   border: 0;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.deepGreen};
-  color: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.palette.white};
   font-weight: 700;
   padding: 0 ${({ theme }) => theme.spacing.lg};
   transition:
@@ -17,7 +17,7 @@ export const Button = styled.button`
     transform 160ms ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.darkGreen};
+    filter: brightness(0.94);
   }
 
   &:disabled {
@@ -27,11 +27,11 @@ export const Button = styled.button`
 `;
 
 export const SecondaryButton = styled(Button)`
-  border: 1px solid ${({ theme }) => theme.colors.oliveGray};
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.deepGreen};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.textStrong};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.softGreen};
+    background: ${({ theme }) => theme.colors.surfaceAlt};
   }
 `;

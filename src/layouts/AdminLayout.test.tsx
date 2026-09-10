@@ -38,6 +38,7 @@ describe('AdminLayout', () => {
     );
 
     expect(await screen.findByText('admin@paladarbuffet.com.br')).toBeInTheDocument();
+    expect(screen.getByText('Administrador')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Sair' }));
     expect(await screen.findByText('Login')).toBeInTheDocument();
   });
@@ -60,9 +61,9 @@ describe('AdminLayout', () => {
       ['/admin']
     );
 
-    const menuButton = await screen.findByRole('button', { name: 'Abrir navegacao' });
+    const menuButton = await screen.findByLabelText('Abrir navegação');
     await userEvent.click(menuButton);
 
-    expect(screen.getByRole('button', { name: 'Fechar navegacao' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('Fechar navegação')).toHaveAttribute('aria-expanded', 'true');
   });
 });

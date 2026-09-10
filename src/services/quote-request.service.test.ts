@@ -20,6 +20,7 @@ describe('submitQuoteRequest', () => {
       phone: '(61) 98416-3455',
       eventType: 'casamento',
       eventDate: '2099-09-20',
+      eventTime: '19:30',
       guestCount: 120,
       location: 'Brasilia-DF',
       message: 'Buffet completo.',
@@ -31,7 +32,10 @@ describe('submitQuoteRequest', () => {
       website: ''
     });
 
-    expect(api.post).toHaveBeenCalledWith('/quote-requests', expect.objectContaining({ fullName: 'Andre Vinicius' }));
+    expect(api.post).toHaveBeenCalledWith(
+      '/quote-requests',
+      expect.objectContaining({ fullName: 'Andre Vinicius', eventTime: '19:30' })
+    );
     expect(result.id).toBe('quote-1');
   });
 });
