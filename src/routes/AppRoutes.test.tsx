@@ -56,6 +56,13 @@ describe('AppRoutes', () => {
     );
   });
 
+  it('renders the application 404 page for an unknown route', () => {
+    renderWithProviders(<AppRoutes />, ['/rota-inexistente']);
+
+    expect(screen.getByText('404')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Página não encontrada' })).toBeInTheDocument();
+  });
+
   it('renders the protected administrative request management route', async () => {
     useCurrentAdminMock.mockReturnValue({
       isLoading: false,
@@ -103,6 +110,7 @@ describe('AppRoutes', () => {
     renderWithProviders(<AppRoutes />, ['/admin/profile']);
 
     expect(await screen.findByRole('heading', { name: 'Perfil' })).toBeInTheDocument();
-    expect(screen.getAllByText('ana@paladarbuffet.com')).toHaveLength(2);
+    expect(screen.getByDisplayValue('ana@paladarbuffet.com')).toHaveAttribute('readonly');
+    expect(screen.getAllByText('ana@paladarbuffet.com')).toHaveLength(1);
   });
 });
