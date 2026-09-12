@@ -52,6 +52,10 @@ export async function updateCustomer(input: { id: string; data: Partial<Customer
   return response.data;
 }
 
+export async function deleteCustomer(id: string) {
+  await api.delete(`/admin/customers/${id}`);
+}
+
 export async function fetchEvents(input: { search?: string; status?: EventStatus }) {
   const response = await api.get<AdminEvent[]>('/admin/events', { params: input });
   return response.data;
@@ -70,6 +74,10 @@ export async function createEvent(input: EventInput) {
 export async function updateEvent(input: { id: string; data: Partial<EventInput> }) {
   const response = await api.patch<AdminEvent>(`/admin/events/${input.id}`, input.data);
   return response.data;
+}
+
+export async function deleteEvent(id: string) {
+  await api.delete(`/admin/events/${id}`);
 }
 
 export async function convertQuoteRequest(input: { id: string; customerId?: string }) {

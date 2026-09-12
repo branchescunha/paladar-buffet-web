@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import styled from 'styled-components';
-import { createEvent, eventStatuses, fetchEvent, fetchEvents, fetchCustomers, updateEvent, type EventInput, type EventStatus } from '@/features/admin-crm/crm.service';
+import { ConfirmDeleteDialog } from '@/components/admin/ConfirmDeleteDialog';
+import { createEvent, deleteEvent, eventStatuses, fetchEvent, fetchEvents, fetchCustomers, updateEvent, type EventInput, type EventStatus } from '@/features/admin-crm/crm.service';
 import { getApiErrorMessage } from '@/services/api';
 
 const statusLabels: Record<EventStatus, string> = { PLANEJAMENTO: 'Planejamento', CONFIRMADO: 'Confirmado', CONCLUIDO: 'Concluído', CANCELADO: 'Cancelado' };
@@ -14,6 +15,7 @@ export function AdminEventsPage() {
   const [form, setForm] = useState<EventInput>(emptyEvent);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const queryClient = useQueryClient();
   const customers = useQuery({ queryKey: ['admin-customers', 'event-form'], queryFn: () => fetchCustomers(), retry: false });
   const events = useQuery({ queryKey: ['admin-events', search, status], queryFn: () => fetchEvents({ search: search || undefined, status: status || undefined }), retry: false });
@@ -28,6 +30,27 @@ export function AdminEventsPage() {
     },
     onError: (reason) => setError(getApiErrorMessage(reason))
   });
+  const remove = useMutation({
+    mutationFn: () => deleteEvent(selectedId ?? ''),
+    onSuccess: async () => {
+      const deletedId = selectedId;
+      setSelectedId(null);
+      setForm(emptyEvent);
+      setConfirmingDelete(false);
+      setError(null);
+      setSuccess('Evento excluído com sucesso.');
+      if (deletedId) queryClient.removeQueries({ queryKey: ['admin-event', deletedId], exact: true });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-events'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
+      ]);
+    },
+    onError: (reason) => {
+      setConfirmingDelete(false);
+      setSuccess(null);
+      setError(getApiErrorMessage(reason));
+    }
+  });
 
   function selectEvent(id: string) {
     const event = events.data?.find((item) => item.id === id);
@@ -38,7 +61,7 @@ export function AdminEventsPage() {
 
   return <Page>
     <header><Eyebrow>Operação</Eyebrow><h1>Eventos</h1><p>Organize os eventos vinculados aos clientes do Paladar Buffet.</p></header>
-    <Filters><input aria-label="Buscar eventos" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Evento ou cliente" /><select aria-label="Filtrar eventos por status" value={status} onChange={(event) => setStatus(event.target.value as EventStatus | '')}><option value="">Todos os status</option>{eventStatuses.map((value) => <option key={value} value={value}>{statusLabels[value]}</option>)}</select><button type="button" onClick={() => { setSelectedId(null); setForm(emptyEvent); setError(null); setSuccess(null); }}>Novo evento</button></Filters>
+    <Filters><input aria-label="Buscar eventos" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Evento ou cliente" /><select aria-label="Filtrar eventos por status" value={status} onChange={(event) => setStatus(event.target.value as EventStatus | '')}><option value="">Todos os status</option>{eventStatuses.map((value) => <option key={value} value={value}>{statusLabels[value]}</option>)}</select><button type="button" onClick={() => { setSelectedId(null); setForm(emptyEvent); setError(null); setSuccess(null); setConfirmingDelete(false); }}>Novo evento</button></Filters>
     <Workspace>
       {!events.isLoading && !events.isError && events.data?.length === 0 ? <EmptyState>Nenhum evento encontrado.</EmptyState> : null}
       <Panel>{events.isLoading ? <Feedback>Carregando eventos...</Feedback> : null}<List>{events.data?.map((event) => <ListItem key={event.id} type="button" $selected={event.id === selectedId} onClick={() => selectEvent(event.id)}><strong>{event.eventType}</strong><span>{event.customer?.name ?? 'Cliente'} · {formatDate(event.eventDate)}</span><small>{statusLabels[event.status]}</small></ListItem>)}</List></Panel>
@@ -49,9 +72,10 @@ export function AdminEventsPage() {
         <Field><label htmlFor="event-location">Local</label><input id="event-location" required value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} /></Field>
         <Field><label htmlFor="event-status">Status</label><select id="event-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as EventStatus })}>{eventStatuses.map((value) => <option key={value} value={value}>{statusLabels[value]}</option>)}</select></Field>
         <Field><label htmlFor="event-notes">Observações</label><textarea id="event-notes" value={form.notes ?? ''} onChange={(event) => setForm({ ...form, notes: event.target.value || null })} /></Field>
-        {error ? <Error role="alert">{error}</Error> : null}{success ? <Success role="status">{success}</Success> : null}<SaveButton disabled={save.isPending}>{save.isPending ? 'Salvando...' : 'Salvar evento'}</SaveButton>
+        {error ? <Error role="alert">{error}</Error> : null}{success ? <Success role="status">{success}</Success> : null}<FormActions><SaveButton disabled={save.isPending || remove.isPending}>{save.isPending ? 'Salvando...' : 'Salvar evento'}</SaveButton>{selectedId ? <DeleteButton type="button" disabled={save.isPending || remove.isPending} onClick={() => setConfirmingDelete(true)}>Excluir evento</DeleteButton> : null}</FormActions>
       </Form></Panel>
     </Workspace>
+    {confirmingDelete ? <ConfirmDeleteDialog title="Excluir evento?" confirmLabel="Excluir evento" isPending={remove.isPending} onCancel={() => setConfirmingDelete(false)} onConfirm={() => remove.mutate()} /> : null}
   </Page>;
 }
 
@@ -68,6 +92,8 @@ const Form = styled.form`display:grid;gap:${({ theme }) => theme.spacing.md};mar
 const TwoColumns = styled.div`display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${({ theme }) => theme.spacing.md};@media(max-width:${({ theme }) => theme.breakpoints.sm}){grid-template-columns:1fr}`;
 const Field = styled.div`display:grid;gap:${({ theme }) => theme.spacing.xs};label{font-weight:700;color:${({ theme }) => theme.colors.textStrong}}input,select,textarea{width:100%;min-height:2.75rem;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.elevated};color:${({ theme }) => theme.colors.textStrong};font:inherit;padding:${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md}}input[type='date'],input[type='time']{color-scheme:${({ theme }) => theme.mode}}textarea{min-height:7rem;resize:vertical}`;
 const SaveButton = styled.button`min-height:2.75rem;border:0;border-radius:${({ theme }) => theme.radius.pill};background:${({ theme }) => theme.colors.accent};color:${({ theme }) => theme.palette.white};font-weight:800;padding:0 ${({ theme }) => theme.spacing.lg};@media(max-width:${({ theme }) => theme.breakpoints.sm}){width:100%;}`;
+const FormActions = styled.div`display:flex;flex-wrap:wrap;gap:${({ theme }) => theme.spacing.sm};`;
+const DeleteButton = styled.button`min-height:2.75rem;border:1px solid ${({ theme }) => theme.colors.danger};border-radius:${({ theme }) => theme.radius.pill};background:transparent;color:${({ theme }) => theme.colors.danger};font-weight:800;padding:0 ${({ theme }) => theme.spacing.lg};`;
 const Feedback = styled.p`margin-top:${({ theme }) => theme.spacing.md} !important;`;
 const Error = styled.p`color:${({ theme }) => theme.colors.danger} !important;`;
 const Success = styled.p`color:${({ theme }) => theme.colors.accent} !important;font-weight:700;`;

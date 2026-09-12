@@ -12,6 +12,7 @@ export async function fetchProposal(id: string) { return (await api.get<Proposal
 export async function createProposal(input: ProposalInput) { return (await api.post<Proposal>('/admin/proposals', input)).data; }
 export async function updateProposal(input: { id: string; data: ProposalInput }) { return (await api.patch<Proposal>(`/admin/proposals/${input.id}`, input.data)).data; }
 export async function updateProposalStatus(input: { id: string; status: ProposalStatus }) { return (await api.patch<Proposal>(`/admin/proposals/${input.id}/status`, { status: input.status })).data; }
+export async function deleteProposal(id: string) { await api.delete(`/admin/proposals/${id}`); }
 export async function createProposalDraft(quoteId: string) { return (await api.post<Proposal>(`/admin/quote-requests/${quoteId}/proposal-draft`, {})).data; }
 export async function downloadProposalPdf(id: string) {
   const response = await api.get<ArrayBuffer>(`/admin/proposals/${id}/pdf`, { responseType: 'arraybuffer' });
