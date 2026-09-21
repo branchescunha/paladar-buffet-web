@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 const event = {
-  id: 'event-1', customerId: 'customer-1', quoteRequestId: null, eventType: 'Casamento', eventDate: '2099-10-20T12:00:00.000Z',
+  id: 'event-1', customerId: 'customer-1', quoteRequestId: null, eventType: 'casamento', eventDate: '2099-10-20T12:00:00.000Z',
   eventTime: '19:30', location: 'Brasília', guestCount: 120, notes: null, status: 'PLANEJAMENTO',
   createdAt: '2026-09-01T12:00:00.000Z', updatedAt: '2026-09-01T12:00:00.000Z', customer: { id: 'customer-1', name: 'Ana Souza' }
 };
@@ -31,6 +31,12 @@ describe('AdminEventsPage deletion', () => {
     mocks.events = [event];
     mocks.deleteEvent.mockReset();
     mocks.updateEvent.mockReset().mockResolvedValue(event);
+  });
+
+  it('capitalizes a known event type only in the list presentation', async () => {
+    renderWithProviders(<AdminEventsPage />);
+
+    expect(await screen.findByText('Casamento')).toBeInTheDocument();
   });
 
   it('shows deletion only for an existing event and hides it for a new event', async () => {

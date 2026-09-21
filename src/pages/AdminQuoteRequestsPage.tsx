@@ -13,6 +13,7 @@ import {
 import { convertQuoteRequest, fetchCustomers } from '@/features/admin-crm/crm.service';
 import { createProposalDraft } from '@/features/admin-proposals/proposal.service';
 import { getApiErrorMessage } from '@/services/api';
+import { formatAdminControlledValue } from '@/utils/admin-presentation';
 
 const statusLabels: Record<QuoteRequestStatus, string> = {
   NOVA: 'Nova',
@@ -153,7 +154,7 @@ export function AdminQuoteRequestsPage() {
                 <DetailItem label="Telefone" value={detail.data.phone} />
                 <DetailItem label="Convidados" value={`${detail.data.guestCount}`} />
                 <DetailItem label="Local" value={detail.data.location ?? 'Não informado'} />
-                <DetailItem label="Contato preferido" value={detail.data.preferredContact} />
+                <DetailItem label="Contato preferido" value={formatAdminControlledValue(detail.data.preferredContact)} />
                 <DetailItem label="Recebida em" value={formatDateTime(detail.data.createdAt)} />
                 <DetailItem label="Preferências de cardápio" value={formatList(detail.data.menuPreferences)} />
                 <DetailItem label="Necessidades de serviço" value={formatList(detail.data.serviceNeeds)} />
@@ -209,7 +210,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 }
 
 function formatEvent(item: { eventType: string; eventTypeOther: string | null; eventDate: string | null; eventTime: string | null }) {
-  const eventName = item.eventTypeOther ?? eventTypeLabels[item.eventType] ?? item.eventType;
+  const eventName = item.eventTypeOther ?? formatAdminControlledValue(item.eventType);
   const date = item.eventDate ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date(item.eventDate)) : null;
   return [eventName, date, item.eventTime].filter(Boolean).join(' · ');
 }
@@ -219,20 +220,8 @@ function formatDateTime(value: string) {
 }
 
 function formatList(values: string[]) {
-  return values.length ? values.join(', ') : 'Não informado';
+  return values.length ? values.map(formatAdminControlledValue).join(', ') : 'Não informado';
 }
-
-const eventTypeLabels: Record<string, string> = {
-  casamento: 'Casamento',
-  aniversario: 'Aniversário',
-  corporativo: 'Corporativo',
-  confraternizacao: 'Confraternização',
-  churrasco: 'Churrasco',
-  reuniao: 'Reunião',
-  'coffee-break': 'Coffee break',
-  brunch: 'Brunch',
-  outro: 'Outro'
-};
 
 const Page = styled.section`
   display: grid;
@@ -528,6 +517,7 @@ const ConversionAction = styled.div`
     background: ${({ theme }) => theme.colors.accent};
     color: ${({ theme }) => theme.palette.white};
     font-weight: 800;
+    margin-top: ${({ theme }) => theme.spacing.sm};
   }
 
   p {

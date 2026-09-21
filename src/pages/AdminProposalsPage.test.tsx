@@ -33,7 +33,7 @@ const persistedProposal = {
 
 vi.mock('@/features/admin-crm/crm.service', () => ({
   fetchCustomers: () => Promise.resolve([{ id: 'customer-1', name: 'Ana Souza' }]),
-  fetchEvents: () => Promise.resolve([])
+  fetchEvents: () => Promise.resolve([{ id: 'event-1', customerId: 'customer-1', eventType: 'casamento' }])
 }));
 
 vi.mock('@/features/admin-proposals/proposal.service', () => ({
@@ -69,6 +69,7 @@ describe('AdminProposalsPage', () => {
     expect(screen.getByLabelText('Valor do item 2')).toHaveValue('30,00');
     expect(screen.getByText(/Subtotal: R\$ 6\.150,00/)).toBeInTheDocument();
     expect(screen.getByText(/Total: R\$ 5\.950,00/)).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Casamento' })).toBeInTheDocument();
   });
 
   it('shows deletion only while editing an existing proposal', async () => {

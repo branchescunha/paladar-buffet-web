@@ -70,6 +70,9 @@ describe('AdminQuoteRequestsPage', () => {
     await user.click(await screen.findByRole('button', { name: /ana souza/i }));
 
     expect(await screen.findByText('Gostaria de um buffet completo.')).toBeInTheDocument();
+    expect(screen.getByText('WhatsApp')).toBeInTheDocument();
+    expect(screen.getByText('Jantar')).toBeInTheDocument();
+    expect(screen.getByText('Garçons')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /criar proposta/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /criar cliente e evento/i })).toBeEnabled();
 

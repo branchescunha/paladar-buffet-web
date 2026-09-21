@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, FilePlus2, Inbox, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { formatAdminControlledValue } from '@/utils/admin-presentation';
 import { fetchAdminDashboard } from '@/features/admin-dashboard/dashboard.service';
 
 const operationalMetrics = [
@@ -88,7 +89,7 @@ export function AdminHomePage() {
 }
 
 function formatEvent(request: { eventType: string; eventTypeOther: string | null; eventDate: string | null; eventTime: string | null }) {
-  const eventName = request.eventTypeOther ?? eventTypeLabels[request.eventType] ?? request.eventType;
+  const eventName = request.eventTypeOther ?? formatAdminControlledValue(request.eventType);
   const date = request.eventDate ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date(request.eventDate)) : null;
   return [eventName, date, request.eventTime].filter(Boolean).join(' · ');
 }
@@ -96,18 +97,6 @@ function formatEvent(request: { eventType: string; eventTypeOther: string | null
 function formatReceivedAt(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
 }
-
-const eventTypeLabels: Record<string, string> = {
-  casamento: 'Casamento',
-  aniversario: 'Aniversário',
-  corporativo: 'Corporativo',
-  confraternizacao: 'Confraternização',
-  churrasco: 'Churrasco',
-  reuniao: 'Reunião',
-  'coffee-break': 'Coffee break',
-  brunch: 'Brunch',
-  outro: 'Outro'
-};
 
 const Page = styled.section`
   display: grid;
