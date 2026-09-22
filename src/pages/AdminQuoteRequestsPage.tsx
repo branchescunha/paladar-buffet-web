@@ -524,4 +524,14 @@ const ConversionAction = styled.div`
     color: ${({ theme }) => theme.colors.textMuted};
     font-size: 0.85rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-width: 0;
+
+    select,
+    button {
+      width: 100%;
+      min-width: 0;
+    }
+  }
 `;
