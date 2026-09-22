@@ -22,8 +22,8 @@ export function AdminUsersPage() {
       <Table>
         <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th><th><span className="sr-only">Ação</span></th></tr></thead>
         <tbody>{users.data?.map((user) => <tr key={user.id}>
-          <td>{user.name}</td><td>{user.email}</td><td>{user.role === 'OWNER' ? 'Proprietário' : 'Administrador'}</td><td>{user.isActive ? 'Ativo' : 'Inativo'}</td>
-          <td>{user.role === 'ADMIN' ? <Action type="button" disabled={updateActivity.isPending} onClick={() => updateActivity.mutate({ id: user.id, isActive: !user.isActive })}>{user.isActive ? 'Desativar' : 'Ativar'}</Action> : '—'}</td>
+          <td>{user.name}</td><td>{user.email}</td><td>Administrador</td><td>{user.isActive ? 'Ativo' : 'Inativo'}</td>
+          <td><Action type="button" disabled={updateActivity.isPending} onClick={() => updateActivity.mutate({ id: user.id, isActive: !user.isActive })}>{user.isActive ? 'Desativar' : 'Ativar'}</Action></td>
         </tr>)}</tbody>
       </Table>
       {message ? <Message $type={message.type} role={message.type === 'error' ? 'alert' : 'status'}>{message.text}</Message> : null}

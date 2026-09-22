@@ -22,7 +22,7 @@ export function AdminProfilePage() {
   return <Page><header><Eyebrow>Conta</Eyebrow><h1>Perfil</h1><p>Dados da sua conta administrativa.</p></header><Panel as="form" onSubmit={submit}>
     <Field><label htmlFor="profile-name">Nome</label><input id="profile-name" required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></Field>
     <Field><label htmlFor="profile-email">E-mail</label><input id="profile-email" value={admin?.email ?? ''} readOnly /></Field>
-    <Field><label htmlFor="profile-role">Função</label><input id="profile-role" value={admin?.role === 'OWNER' ? 'Proprietário' : 'Administrador'} readOnly /></Field>
+    <Field><label htmlFor="profile-role">Função</label><input id="profile-role" value="Administrador" readOnly /></Field>
     {message ? <Notice $type={message.type} role={message.type === 'error' ? 'alert' : 'status'}>{message.text}</Notice> : null}
     <Actions><Save type="submit" disabled={save.isPending}>{save.isPending ? 'Salvando...' : 'Salvar perfil'}</Save><PasswordLink to="/change-password">Alterar senha</PasswordLink></Actions>
   </Panel></Page>;

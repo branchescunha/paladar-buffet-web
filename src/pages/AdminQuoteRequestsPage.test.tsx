@@ -47,6 +47,10 @@ vi.mock('@/features/admin-quote-requests/admin-quote-requests.service', () => ({
       status: 'NOVA',
       message: 'Gostaria de um buffet completo.',
       menuPreferences: ['jantar'],
+      menuSelections: [
+        { groupName: 'Acompanhamentos', groupPosition: 3, sectionName: 'Arroz', sectionPosition: 1, optionName: 'Arroz branco', optionPosition: 1 },
+        { groupName: 'Acompanhamentos', groupPosition: 3, sectionName: 'Massas', sectionPosition: 2, optionName: 'Fettucine ao molho branco', optionPosition: 1 }
+      ],
       serviceNeeds: ['garcons'],
       dietaryRestrictions: null,
       acceptedPrivacy: true,
@@ -72,6 +76,10 @@ describe('AdminQuoteRequestsPage', () => {
     expect(await screen.findByText('Gostaria de um buffet completo.')).toBeInTheDocument();
     expect(screen.getByText('WhatsApp')).toBeInTheDocument();
     expect(screen.getByText('Jantar')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Cardápio selecionado' })).toBeInTheDocument();
+    expect(screen.getByText('Acompanhamentos')).toBeInTheDocument();
+    expect(screen.getByText('Arroz branco')).toBeInTheDocument();
+    expect(screen.getByText('Fettucine ao molho branco')).toBeInTheDocument();
     expect(screen.getByText('Garçons')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /criar proposta/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /criar cliente e evento/i })).toBeEnabled();

@@ -1,17 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, Handshake, Sparkles } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button } from '@/components/Button';
 import {
-  menuPreferenceValues,
   formatBrazilianPhone,
   quoteRequestFormSchema,
   serviceNeedValues,
   type QuoteRequestFormData
 } from '@/features/quote/quote.schemas';
+import { fetchPublicMenu, menuSelectionInstruction, validateMenuSelection } from '@/features/menu/menu.service';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { submitQuoteRequest } from '@/services/quote-request.service';
 
@@ -21,6 +22,8 @@ const publicSubmitErrorMessage =
 export function QuotePage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [menuErrors, setMenuErrors] = useState<Record<string, string>>({});
+  const menu = useQuery({ queryKey: ['public-menu'], queryFn: fetchPublicMenu, retry: false });
   const form = useForm<QuoteRequestFormData>({
     resolver: zodResolver(quoteRequestFormSchema),
     defaultValues: {
@@ -37,6 +40,7 @@ export function QuotePage() {
       preferredContact: 'whatsapp',
       menuPreferences: [],
       serviceNeeds: [],
+      menuOptionIds: [],
       dietaryRestrictions: '',
       acceptedPrivacy: false,
       website: ''
@@ -56,6 +60,11 @@ export function QuotePage() {
   async function onSubmit(data: QuoteRequestFormData) {
     setError('');
     setSuccess(false);
+    const selectionErrors = validateMenuSelection(menu.data ?? [], data.menuOptionIds);
+    setMenuErrors(selectionErrors);
+    if (!menu.data || Object.keys(selectionErrors).length > 0) {
+      return;
+    }
     try {
       await submitQuoteRequest(data);
       setSuccess(true);
@@ -203,16 +212,35 @@ export function QuotePage() {
               </Field>
             </FieldGroup>
 
-            <GroupTitle>Preferências</GroupTitle>
-            <CheckboxGroup>
-              <legend>Interesses de cardápio</legend>
-              {menuPreferenceValues.map((value) => (
-                <label key={value}>
-                  <input type="checkbox" value={value} {...form.register('menuPreferences')} />
-                  {formatOption(value)}
-                </label>
+            <GroupTitle>Cardápio</GroupTitle>
+            {menu.isLoading ? <MenuFeedback>Carregando opções do cardápio...</MenuFeedback> : null}
+            {menu.isError ? <SubmitError role="alert">Não foi possível carregar o cardápio. Tente novamente em instantes.</SubmitError> : null}
+            <MenuGroups>
+              {menu.data?.map((group) => (
+                <MenuGroupField key={group.id}>
+                  <legend>
+                    <strong>{group.name}</strong>
+                    <span>{menuSelectionInstruction(group)}</span>
+                  </legend>
+                  {group.sections.map((section) => (
+                    <MenuSection key={section.id}>
+                      {group.sections.length > 1 ? <h3>{section.name}</h3> : null}
+                      <MenuOptions>
+                        {section.options.map((option) => (
+                          <label key={option.id}>
+                            <input type="checkbox" value={option.id} {...form.register('menuOptionIds')} />
+                            <span>{option.name}</span>
+                          </label>
+                        ))}
+                      </MenuOptions>
+                    </MenuSection>
+                  ))}
+                  {menuErrors[group.id] ? <ErrorText role="alert">{menuErrors[group.id]}</ErrorText> : null}
+                </MenuGroupField>
               ))}
-            </CheckboxGroup>
+            </MenuGroups>
+
+            <GroupTitle>Preferências</GroupTitle>
 
             <CheckboxGroup>
               <legend>Estrutura desejada</legend>
@@ -251,7 +279,7 @@ export function QuotePage() {
               </Success>
             ) : null}
 
-            <SubmitButton type="submit" disabled={!acceptedPrivacy || form.formState.isSubmitting}>
+            <SubmitButton type="submit" disabled={!acceptedPrivacy || form.formState.isSubmitting || menu.isLoading || menu.isError}>
               {form.formState.isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
             </SubmitButton>
           </FormPanel>
@@ -543,6 +571,79 @@ const Field = styled.div<{ $spanAll?: boolean }>`
       min-height: 6.2rem;
       padding-block: 0.7rem;
     }
+  }
+`;
+
+const MenuFeedback = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+const MenuGroups = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const MenuGroupField = styled.fieldset`
+  display: grid;
+  min-width: 0;
+  gap: ${({ theme }) => theme.spacing.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  margin: 0;
+  padding: ${({ theme }) => theme.spacing.md};
+
+  legend {
+    display: flex;
+    max-width: 100%;
+    align-items: center;
+    gap: ${({ theme }) => theme.spacing.sm};
+    color: ${({ theme }) => theme.colors.textStrong};
+    padding: 0 ${({ theme }) => theme.spacing.xs};
+  }
+
+  legend span {
+    color: ${({ theme }) => theme.colors.textMuted};
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+`;
+
+const MenuSection = styled.div`
+  display: grid;
+  min-width: 0;
+  gap: ${({ theme }) => theme.spacing.xs};
+
+  h3 {
+    margin: 0;
+    color: ${({ theme }) => theme.colors.textMuted};
+    font-size: 0.78rem;
+    text-transform: uppercase;
+  }
+`;
+
+const MenuOptions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.md};
+
+  label {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: ${({ theme }) => theme.spacing.sm};
+    color: ${({ theme }) => theme.colors.textStrong};
+    line-height: 1.4;
+  }
+
+  input {
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+    accent-color: ${({ theme }) => theme.colors.accent};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
   }
 `;
 

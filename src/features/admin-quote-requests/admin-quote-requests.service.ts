@@ -35,6 +35,14 @@ export interface AdminQuoteRequestDetail extends AdminQuoteRequestSummary {
   acceptedPrivacy: boolean;
   source: string;
   updatedAt: string;
+  menuSelections: Array<{
+    groupName: string;
+    groupPosition: number;
+    sectionName: string;
+    sectionPosition: number;
+    optionName: string;
+    optionPosition: number;
+  }>;
 }
 
 export async function fetchAdminQuoteRequests(input: { search?: string; status?: QuoteRequestStatus }) {

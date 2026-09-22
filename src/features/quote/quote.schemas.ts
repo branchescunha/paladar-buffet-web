@@ -86,6 +86,7 @@ export const quoteRequestFormSchema = z
     preferredContact: z.enum(['whatsapp', 'email', 'telefone']).default('whatsapp'),
     menuPreferences: z.array(z.enum(menuPreferenceValues)).max(menuPreferenceValues.length).default([]),
     serviceNeeds: z.array(z.enum(serviceNeedValues)).max(serviceNeedValues.length).default([]),
+    menuOptionIds: z.array(z.string().trim().min(1).max(64)).max(200).default([]),
     dietaryRestrictions: z.string().trim().max(600).optional().or(z.literal('')),
     acceptedPrivacy: z.boolean().refine((value) => value, 'Aceite a Política de Privacidade para continuar.'),
     website: z.string().optional()

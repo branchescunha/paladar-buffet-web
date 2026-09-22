@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, FileText, KeyRound, LayoutDashboard, LogOut, Menu, Moon, ShieldCheck, Sun, UserRound, UsersRound, X } from 'lucide-react';
+import { CalendarDays, ClipboardList, FileText, KeyRound, LayoutDashboard, LogOut, Menu, Moon, Settings, ShieldCheck, Sun, UserRound, UsersRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
@@ -10,7 +10,8 @@ const adminThemeStorageKey = 'paladar-admin-theme';
 const baseNavItems = [
   ['Visão geral', '/admin', LayoutDashboard], ['Solicitações', '/admin/quotes', ClipboardList],
   ['Clientes', '/admin/clients', UsersRound], ['Eventos', '/admin/events', CalendarDays],
-  ['Propostas', '/admin/proposals', FileText], ['Perfil', '/admin/profile', UserRound]
+  ['Propostas', '/admin/proposals', FileText], ['Configurações', '/admin/settings', Settings],
+  ['Administradores', '/admin/users', ShieldCheck], ['Perfil', '/admin/profile', UserRound]
 ] as const;
 
 export function AdminLayout() {
@@ -19,7 +20,6 @@ export function AdminLayout() {
   const { data: admin } = useCurrentAdmin();
   const logout = useLogout();
   const navigate = useNavigate();
-  const navItems = admin?.role === 'OWNER' ? [...baseNavItems, ['Administradores', '/admin/users', ShieldCheck] as const] : baseNavItems;
   useEffect(() => { window.localStorage.setItem(adminThemeStorageKey, darkMode ? 'dark' : 'light'); }, [darkMode]);
   async function handleLogout() { await logout.mutateAsync(); navigate('/login', { replace: true }); }
 
@@ -28,12 +28,12 @@ export function AdminLayout() {
       <MobileBackdrop $mobileOpen={mobileOpen} aria-label="Fechar menu lateral" onClick={() => setMobileOpen(false)} />
       <Sidebar aria-label="Navegação administrativa" $mobileOpen={mobileOpen}>
         <LogoLink to="/" aria-label="Ir para o site público"><img src="/assets/paladar/logo-navbar.webp" alt="Paladar Buffet" /></LogoLink>
-        <nav>{navItems.map(([label, path, Icon]) => <NavItem key={path} to={path} end={path === '/admin'} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavItem>)}</nav>
+        <nav>{baseNavItems.map(([label, path, Icon]) => <NavItem key={path} to={path} end={path === '/admin'} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavItem>)}</nav>
       </Sidebar>
       <Content>
         <Header>
           <MobileMenu aria-label={mobileOpen ? 'Fechar navegação' : 'Abrir navegação'} aria-expanded={mobileOpen} onClick={() => setMobileOpen((current) => !current)}>{mobileOpen ? <X size={20} /> : <Menu size={20} />}</MobileMenu>
-          <UserInfo><span>{admin?.name}</span><small>{admin?.email}</small><Role>{admin?.role === 'OWNER' ? 'Proprietário' : 'Administrador'}</Role></UserInfo>
+          <UserInfo><span>{admin?.name}</span><small>{admin?.email}</small><Role>Administrador</Role></UserInfo>
           <IconButton type="button" aria-label={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} title={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setDarkMode((current) => !current)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</IconButton>
           <IconButton as={Link} to="/change-password" aria-label="Alterar senha" title="Alterar senha"><KeyRound size={18} /></IconButton>
           <LogoutButton type="button" onClick={handleLogout} disabled={logout.isPending}><LogOut size={18} /><span>Sair</span></LogoutButton>

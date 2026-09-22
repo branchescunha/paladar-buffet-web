@@ -81,25 +81,14 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { name: 'Solicitações' })).toBeInTheDocument();
   });
 
-  it('renders administrative users only for OWNER', async () => {
+  it.each(['OWNER', 'ADMIN'] as const)('renders administrative users for %s during the role transition', async (role) => {
     useCurrentAdminMock.mockReturnValue({
       isLoading: false,
-      data: { id: 'owner-1', name: 'Mauri', email: 'owner@paladarbuffet.com', role: 'OWNER', avatarUrl: null, mustChangePassword: false }
+      data: { id: 'admin-1', name: 'Admin', email: 'admin@paladarbuffet.com', role, avatarUrl: null, mustChangePassword: false }
     });
     renderWithProviders(<AppRoutes />, ['/admin/users']);
 
     expect(await screen.findByRole('heading', { name: 'Administradores' })).toBeInTheDocument();
-  });
-
-  it('redirects ADMIN away from administrative user management', async () => {
-    useCurrentAdminMock.mockReturnValue({
-      isLoading: false,
-      data: { id: 'admin-1', name: 'Ana', email: 'ana@paladarbuffet.com', role: 'ADMIN', avatarUrl: null, mustChangePassword: false }
-    });
-    renderWithProviders(<AppRoutes />, ['/admin/users']);
-
-    expect(await screen.findByRole('heading', { name: 'Início administrativo' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Administradores' })).not.toBeInTheDocument();
   });
 
   it.each(['OWNER', 'ADMIN'] as const)('renders the profile page for %s', async (role) => {
@@ -111,6 +100,7 @@ describe('AppRoutes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Perfil' })).toBeInTheDocument();
     expect(screen.getByDisplayValue('ana@paladarbuffet.com')).toHaveAttribute('readonly');
+    expect(screen.getByDisplayValue('Administrador')).toHaveAttribute('readonly');
     expect(screen.getAllByText('ana@paladarbuffet.com')).toHaveLength(1);
   });
 });

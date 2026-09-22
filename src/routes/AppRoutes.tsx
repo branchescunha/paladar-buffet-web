@@ -17,7 +17,7 @@ import { PublicHomePage } from '@/pages/PublicHomePage';
 import { QuotePage } from '@/pages/QuotePage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { AdminUsersPage } from '@/pages/AdminUsersPage';
-import { OwnerRoute } from './OwnerRoute';
+import { AdminSettingsPage } from '@/pages/AdminSettingsPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { ScrollRestoration } from './ScrollRestoration';
 
@@ -26,8 +26,7 @@ const futureRoutes = [
   ['contracts', 'Contratos'],
   ['payments', 'Pagamentos'],
   ['calendar', 'Calendário'],
-  ['gallery', 'Galeria'],
-  ['settings', 'Configurações']
+  ['gallery', 'Galeria']
 ] as const;
 
 export function AppRoutes() {
@@ -51,9 +50,8 @@ export function AppRoutes() {
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="proposals" element={<AdminProposalsPage />} />
             <Route path="profile" element={<AdminProfilePage />} />
-            <Route element={<OwnerRoute />}>
-              <Route path="users" element={<AdminUsersPage />} />
-            </Route>
+            <Route path="settings" element={<AdminSettingsPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
             {futureRoutes.map(([path, title]) => (
               <Route key={path} path={path} element={<FutureRoutePage title={title} />} />
             ))}

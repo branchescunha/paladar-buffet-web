@@ -27,6 +27,7 @@ describe('submitQuoteRequest', () => {
       preferredContact: 'whatsapp',
       menuPreferences: ['jantar'],
       serviceNeeds: ['garcons'],
+      menuOptionIds: ['option-1'],
       dietaryRestrictions: '',
       acceptedPrivacy: true,
       website: ''

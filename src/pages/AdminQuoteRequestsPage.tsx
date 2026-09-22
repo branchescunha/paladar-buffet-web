@@ -161,6 +161,7 @@ export function AdminQuoteRequestsPage() {
                 <DetailItem label="Restrições alimentares" value={detail.data.dietaryRestrictions ?? 'Não informado'} />
                 <DetailItem label="Mensagem" value={detail.data.message ?? 'Não informada'} />
               </DetailGrid>
+              {detail.data.menuSelections.length ? <MenuSelectionSummary selections={detail.data.menuSelections} /> : null}
               <StatusAction>
                 <label htmlFor="quote-status">Status</label>
                 <select
@@ -206,6 +207,31 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <dt>{label}</dt>
       <dd>{value}</dd>
     </div>
+  );
+}
+
+function MenuSelectionSummary({ selections }: { selections: Array<{ groupName: string; sectionName: string; optionName: string }> }) {
+  const groups = new Map<string, Map<string, string[]>>();
+  for (const selection of selections) {
+    const sections = groups.get(selection.groupName) ?? new Map<string, string[]>();
+    const options = sections.get(selection.sectionName) ?? [];
+    options.push(selection.optionName);
+    sections.set(selection.sectionName, options);
+    groups.set(selection.groupName, sections);
+  }
+
+  return (
+    <MenuSummary>
+      <h3>Cardápio selecionado</h3>
+      {Array.from(groups, ([groupName, sections]) => (
+        <MenuGroup key={groupName}>
+          <strong>{groupName}</strong>
+          {Array.from(sections, ([sectionName, options]) => (
+            <div key={sectionName}><span>{sectionName}</span><p>{options.join(', ')}</p></div>
+          ))}
+        </MenuGroup>
+      ))}
+    </MenuSummary>
   );
 }
 
@@ -440,6 +466,52 @@ const DetailGrid = styled.dl`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: 1fr;
+  }
+`;
+
+const MenuSummary = styled.section`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin: 0 0 ${({ theme }) => theme.spacing.lg};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding-top: ${({ theme }) => theme.spacing.lg};
+
+  h3 {
+    margin: 0;
+    color: ${({ theme }) => theme.colors.textStrong};
+  }
+`;
+
+const MenuGroup = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.surfaceAlt};
+  padding: ${({ theme }) => theme.spacing.md};
+
+  > strong {
+    color: ${({ theme }) => theme.colors.textStrong};
+  }
+
+  div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+    gap: ${({ theme }) => theme.spacing.sm};
+  }
+
+  span {
+    color: ${({ theme }) => theme.colors.textMuted};
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: ${({ theme }) => theme.colors.textStrong};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    div { grid-template-columns: 1fr; }
   }
 `;
 

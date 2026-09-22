@@ -1,16 +1,32 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuotePage } from './QuotePage';
 import { renderWithProviders } from '@/test/render';
 
 const submitQuoteRequestMock = vi.fn();
+const fetchPublicMenuMock = vi.fn();
 
 vi.mock('@/services/quote-request.service', () => ({
   submitQuoteRequest: (...args: unknown[]) => submitQuoteRequestMock(...args)
 }));
+vi.mock('@/features/menu/menu.service', async () => {
+  const actual = await vi.importActual<typeof import('@/features/menu/menu.service')>('@/features/menu/menu.service');
+  return { ...actual, fetchPublicMenu: (...args: unknown[]) => fetchPublicMenuMock(...args) };
+});
+
+const menuCatalog = [{
+  id: 'group-hot', name: 'Entradas quentes', minSelections: 1, maxSelections: 1, position: 1, isActive: true,
+  sections: [{
+    id: 'section-hot', name: 'Entradas quentes', position: 1, isActive: true,
+    options: [{ id: 'option-hot', name: 'Fricassê de frango', position: 1, isActive: true }]
+  }]
+}];
 
 describe('QuotePage', () => {
+  beforeEach(() => {
+    fetchPublicMenuMock.mockResolvedValue(menuCatalog);
+  });
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -98,6 +114,7 @@ describe('QuotePage', () => {
     await userEvent.type(screen.getByLabelText('Quantidade estimada de convidados'), '120');
     await userEvent.type(screen.getByLabelText('Horário previsto'), '19:30');
     await userEvent.selectOptions(screen.getByLabelText('Tipo de evento'), 'casamento');
+    await userEvent.click(await screen.findByLabelText('Fricassê de frango'));
     await userEvent.click(screen.getByLabelText(/li e aceito/i));
     await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }));
 
@@ -114,11 +131,14 @@ describe('QuotePage', () => {
     await userEvent.type(screen.getByLabelText('Quantidade estimada de convidados'), '120');
     await userEvent.type(screen.getByLabelText('Horário previsto'), '19:30');
     await userEvent.selectOptions(screen.getByLabelText('Tipo de evento'), 'casamento');
+    await userEvent.click(await screen.findByLabelText('Fricassê de frango'));
     await userEvent.click(screen.getByLabelText(/li e aceito/i));
     await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }));
 
     await waitFor(() => expect(submitQuoteRequestMock).toHaveBeenCalledTimes(1));
-    expect(submitQuoteRequestMock).toHaveBeenCalledWith(expect.objectContaining({ phone: '61984163455', eventTime: '19:30' }));
+    expect(submitQuoteRequestMock).toHaveBeenCalledWith(expect.objectContaining({
+      phone: '61984163455', eventTime: '19:30', menuOptionIds: ['option-hot']
+    }));
     expect(await screen.findByText(/solicitação recebida/i)).toBeInTheDocument();
   });
 });
