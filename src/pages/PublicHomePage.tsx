@@ -651,8 +651,8 @@ const HeroMedia = styled.div`
   img + img {
     opacity: 0;
     transition: opacity 220ms ease;
-    -webkit-mask-image: radial-gradient(circle 230px at var(--x) var(--y), #000 0 42%, rgba(0, 0, 0, 0.72) 58%, transparent 100%);
-    mask-image: radial-gradient(circle 230px at var(--x) var(--y), #000 0 42%, rgba(0, 0, 0, 0.72) 58%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle 270px at var(--x) var(--y), #000 0 42%, rgba(0, 0, 0, 0.72) 58%, transparent 100%);
+    mask-image: radial-gradient(circle 270px at var(--x) var(--y), #000 0 42%, rgba(0, 0, 0, 0.72) 58%, transparent 100%);
   }
 
   &:hover img + img {
@@ -970,7 +970,7 @@ const StoryStatement = styled.h2`
   margin: 0;
   color: ${({ theme }) => theme.palette.warmWhite};
   font-family: ${({ theme }) => theme.typography.headingFamily};
-  font-size: clamp(2.35rem, 6.5vw, 6.4rem);
+  font-size: clamp(2.25rem, 6vw, 5.8rem);
   line-height: 0.98;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
