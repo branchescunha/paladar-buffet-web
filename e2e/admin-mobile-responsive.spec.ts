@@ -70,6 +70,10 @@ const proposal = {
   notes: 'Equipe e estrutura completas.',
   validUntil: '2099-10-01T00:00:00.000Z',
   status: 'RASCUNHO',
+  pricingMode: 'ITEMIZED',
+  guestCount: null,
+  pricePerGuestCents: null,
+  baseTotalCents: null,
   subtotalCents: 1125000,
   adjustmentCents: -25000,
   totalCents: 1100000,
@@ -79,7 +83,13 @@ const proposal = {
     { id: 'item-1', description: 'Equipe de garcons', quantity: 6, unitPriceCents: 25000, subtotalCents: 150000 },
     { id: 'item-2', description: 'Buffet completo', quantity: 165, unitPriceCents: 5500, subtotalCents: 907500 },
     { id: 'item-3', description: 'Mesa de sobremesas', quantity: 1, unitPriceCents: 67500, subtotalCents: 67500 }
-  ]
+  ],
+  includedServices: [],
+  paymentInstallments: [],
+  paymentMethods: [],
+  menuSelections: [],
+  responsibleNameSnapshot: null,
+  responsibleTitleSnapshot: null
 };
 
 const viewports = [320, 375, 390, 430];

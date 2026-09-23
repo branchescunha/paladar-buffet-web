@@ -20,6 +20,7 @@ const persistedProposal = {
   notes: null,
   validUntil: '2099-10-01T00:00:00.000Z',
   status: 'RASCUNHO',
+  pricingMode: 'ITEMIZED',
   subtotalCents: 615000,
   adjustmentCents: -20000,
   totalCents: 595000,
@@ -28,12 +29,49 @@ const persistedProposal = {
   items: [
     { id: 'item-1', description: 'Garcons', quantity: 6, unitPriceCents: 20000, subtotalCents: 120000 },
     { id: 'item-2', description: 'Buffet', quantity: 165, unitPriceCents: 3000, subtotalCents: 495000 }
-  ]
+  ],
+  includedServices: [],
+  paymentInstallments: [],
+  paymentMethods: [],
+  menuSelections: [],
+  responsibleNameSnapshot: null,
+  responsibleTitleSnapshot: null
+};
+
+const perGuestProposal = {
+  ...persistedProposal,
+  id: 'proposal-per-guest',
+  eventId: 'event-1',
+  quoteRequestId: 'quote-1',
+  pricingMode: 'PER_GUEST',
+  guestCount: 80,
+  pricePerGuestCents: 12990,
+  baseTotalCents: 1039200,
+  subtotalCents: 1039200,
+  adjustmentCents: -39200,
+  totalCents: 1000000,
+  items: [],
+  includedServices: [{ id: 'service-1', description: 'Buffet', position: 0 }],
+  paymentInstallments: [
+    { id: 'installment-1', description: 'Na contratação', percentage: 50, position: 0, amountCents: 500000 },
+    { id: 'installment-2', description: 'No dia do evento', percentage: 50, position: 1, amountCents: 500000 }
+  ],
+  paymentMethods: [{ id: 'snapshot-1', paymentMethodId: 'payment-pix', name: 'Pix', pixKey: 'chave histórica', instructions: 'Pagamento identificado', position: 0 }],
+  menuSelections: [{ id: 'menu-1', groupName: 'Entradas quentes', groupPosition: 1, sectionName: 'Entradas quentes', sectionPosition: 1, optionName: 'Fricassê de frango', optionPosition: 1 }],
+  responsibleNameSnapshot: 'André Cunha',
+  responsibleTitleSnapshot: 'Administrador'
 };
 
 vi.mock('@/features/admin-crm/crm.service', () => ({
   fetchCustomers: () => Promise.resolve([{ id: 'customer-1', name: 'Ana Souza' }]),
-  fetchEvents: () => Promise.resolve([{ id: 'event-1', customerId: 'customer-1', eventType: 'casamento' }])
+  fetchEvents: () => Promise.resolve([{ id: 'event-1', customerId: 'customer-1', eventType: 'casamento', guestCount: 80 }])
+}));
+
+vi.mock('@/features/admin-settings/settings.service', () => ({
+  fetchPaymentMethods: () => Promise.resolve([
+    { id: 'payment-pix', name: 'Pix', pixKey: 'chave atual', instructions: 'Instrução atual', position: 1, isActive: true },
+    { id: 'payment-credit', name: 'Crédito', pixKey: null, instructions: null, position: 2, isActive: true }
+  ])
 }));
 
 vi.mock('@/features/admin-proposals/proposal.service', () => ({
@@ -53,6 +91,34 @@ describe('AdminProposalsPage', () => {
     proposalMocks.fetchProposal.mockReset().mockResolvedValue(persistedProposal);
     proposalMocks.deleteProposal.mockReset();
     proposalMocks.updateProposal.mockReset().mockResolvedValue(persistedProposal);
+  });
+
+  it('starts a new proposal in per-guest mode', async () => {
+    renderWithProviders(<AdminProposalsPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Nova proposta' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Valores por pessoa' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Quantidade de convidados')).toBeInTheDocument();
+    expect(screen.getByLabelText('Valor por pessoa')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Adicionar item' })).not.toBeInTheDocument();
+  });
+
+  it('hydrates the commercial snapshots without replacing them with current catalog data', async () => {
+    proposalMocks.proposals = [{ ...perGuestProposal, items: undefined }];
+    proposalMocks.fetchProposal.mockResolvedValue(perGuestProposal);
+    const user = userEvent.setup();
+
+    renderWithProviders(<AdminProposalsPage />);
+    await user.click(await screen.findByRole('button', { name: /Ana Souza/i }));
+
+    expect(await screen.findByLabelText('Quantidade de convidados')).toHaveValue(80);
+    expect(screen.getByLabelText('Valor por pessoa')).toHaveValue('129,90');
+    expect(screen.getByRole('heading', { name: 'Cardápio selecionado' })).toBeInTheDocument();
+    expect(screen.getByText('Fricassê de frango')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Buffet')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pix')).toBeChecked();
+    expect(screen.getByText('chave histórica')).toBeInTheDocument();
+    expect(screen.getByText('André Cunha')).toBeInTheDocument();
   });
 
   it('rehydrates all persisted items and monetary values when reopening a proposal', async () => {
