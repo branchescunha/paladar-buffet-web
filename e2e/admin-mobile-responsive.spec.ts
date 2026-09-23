@@ -53,6 +53,7 @@ const quote = {
   status: 'NOVA',
   message: 'Gostaria de um buffet completo com atendimento personalizado para todos os convidados.',
   menuPreferences: ['jantar', 'sobremesas'],
+  menuSelections: [],
   serviceNeeds: ['garcons', 'loucas', 'montagem'],
   dietaryRestrictions: 'Uma convidada com restricao a lactose.',
   acceptedPrivacy: true,
@@ -92,6 +93,58 @@ const proposal = {
   responsibleTitleSnapshot: null
 };
 
+const paymentMethod = {
+  id: 'payment-1',
+  name: 'Pix',
+  instructions: 'Identifique o pagamento com o nome do cliente.',
+  pixKey: null,
+  position: 1,
+  isActive: true
+};
+
+const menu = [{
+  id: 'menu-group-1',
+  name: 'Entradas',
+  minSelections: 1,
+  maxSelections: 2,
+  position: 1,
+  isActive: true,
+  sections: [{
+    id: 'menu-section-1',
+    groupId: 'menu-group-1',
+    name: 'Entradas quentes',
+    position: 1,
+    isActive: true,
+    options: [{ id: 'menu-option-1', name: 'Fricass\u00ea de frango', position: 1, isActive: true }]
+  }]
+}];
+
+const perGuestProposal = {
+  ...proposal,
+  id: 'proposal-per-guest',
+  description: 'Recep\u00e7\u00e3o completa por pessoa',
+  pricingMode: 'PER_GUEST',
+  guestCount: 165,
+  pricePerGuestCents: 12500,
+  baseTotalCents: 2062500,
+  subtotalCents: 2062500,
+  adjustmentCents: -62500,
+  totalCents: 2000000,
+  items: [],
+  includedServices: [
+    { id: 'service-1', description: 'Buffet completo', position: 0 },
+    { id: 'service-2', description: 'Equipe de atendimento', position: 1 }
+  ],
+  paymentInstallments: [
+    { id: 'installment-1', description: 'Na contrata\u00e7\u00e3o', percentage: 50, position: 0, amountCents: 1000000 },
+    { id: 'installment-2', description: 'No dia do evento', percentage: 50, position: 1, amountCents: 1000000 }
+  ],
+  paymentMethods: [{ id: 'snapshot-1', paymentMethodId: paymentMethod.id, name: paymentMethod.name, pixKey: null, instructions: paymentMethod.instructions, position: 1 }],
+  menuSelections: [{ id: 'selection-1', groupName: 'Entradas', groupPosition: 1, sectionName: 'Entradas quentes', sectionPosition: 1, optionName: 'Fricass\u00ea de frango', optionPosition: 1 }],
+  responsibleNameSnapshot: 'Administrador Paladar Buffet',
+  responsibleTitleSnapshot: 'Administrador'
+};
+
 const viewports = [320, 375, 390, 430];
 const adminRoutes = [
   ['/admin', 'Painel administrativo'],
@@ -99,7 +152,9 @@ const adminRoutes = [
   ['/admin/clients', 'Clientes'],
   ['/admin/events', 'Eventos'],
   ['/admin/proposals', 'Propostas'],
-  ['/admin/profile', 'Perfil']
+  ['/admin/settings', 'Configura'],
+  ['/admin/profile', 'Perfil'],
+  ['/admin/users', 'Administradores']
 ] as const;
 
 for (const width of viewports) {
@@ -121,6 +176,10 @@ for (const width of viewports) {
     for (const [path, heading] of adminRoutes) {
       await page.goto(path);
       await expect(page.locator('h1').filter({ hasText: heading })).toBeVisible();
+      await expect(page.getByRole('banner').first().getByText(admin.name, { exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: /Usar tema/i })).toBeVisible();
+      await expect(page.getByTitle('Alterar senha')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
 
       if (path === '/admin') {
         await page.getByRole('button', { name: /^Abrir navega/i }).click();
@@ -153,6 +212,27 @@ for (const width of viewports) {
   });
 }
 
+for (const width of viewports) {
+  test(`keeps filled per-guest proposal contained at ${width}px`, async ({ page }) => {
+    await page.route('**/*', (route) => {
+      const resourceType = route.request().resourceType();
+      return resourceType === 'fetch' || resourceType === 'xhr'
+        ? mockApi(route, true)
+        : route.continue();
+    });
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/admin/proposals');
+
+    await page.getByRole('button', { name: /R\$ 20\.000,00/ }).click();
+    await expect(page.getByLabel('Quantidade de convidados')).toHaveValue('165');
+    await expect(page.getByLabel('Valor por pessoa')).toHaveValue('125,00');
+    await expect(page.getByText('Fricass\u00ea de frango')).toBeVisible();
+    await expect(page.getByLabel('Pix')).toBeChecked();
+    await expect(page.getByText('Total dos percentuais: 100%.')).toBeVisible();
+    await expectContainedLayout(page, `/admin/proposals PER_GUEST at ${width}px`);
+  });
+}
+
 async function openRecordAndDialog(page: Page, recordName: string, deleteLabel: string) {
   await page.getByRole('button', { name: new RegExp(recordName, 'i') }).first().click();
   await page.getByRole('button', { name: deleteLabel }).click();
@@ -182,11 +262,23 @@ async function expectContainedLayout(page: Page, context: string) {
       }];
     });
 
+    const internallyClipped = visibleElements.flatMap((element) => {
+      if (!element.matches('button, a')) return [];
+      if (element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1) return [];
+      return [{
+        tag: element.tagName,
+        text: (element.getAttribute('aria-label') || element.textContent || '').trim().slice(0, 80),
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth
+      }];
+    });
+
     return {
       documentScrollWidth: document.documentElement.scrollWidth,
       bodyScrollWidth: document.body.scrollWidth,
       viewportWidth,
-      offenders
+      offenders,
+      internallyClipped
     };
   });
 
@@ -194,7 +286,8 @@ async function expectContainedLayout(page: Page, context: string) {
     documentScrollWidth: layout.viewportWidth,
     bodyScrollWidth: layout.viewportWidth,
     viewportWidth: layout.viewportWidth,
-    offenders: []
+    offenders: [],
+    internallyClipped: []
   });
 }
 
@@ -219,8 +312,12 @@ async function mockApi(route: Route, authenticated: boolean) {
   if (pathname === `/admin/customers/${customer.id}` && method === 'GET') return json(route, customer);
   if (pathname === '/admin/events' && method === 'GET') return json(route, [event]);
   if (pathname === `/admin/events/${event.id}` && method === 'GET') return json(route, event);
-  if (pathname === '/admin/proposals' && method === 'GET') return json(route, [{ ...proposal, items: undefined }]);
+  if (pathname === '/admin/menu' && method === 'GET') return json(route, menu);
+  if (pathname === '/admin/payment-methods' && method === 'GET') return json(route, [paymentMethod]);
+  if (pathname === '/admin/users' && method === 'GET') return json(route, [admin]);
+  if (pathname === '/admin/proposals' && method === 'GET') return json(route, [{ ...proposal, items: undefined }, { ...perGuestProposal, items: undefined }]);
   if (pathname === `/admin/proposals/${proposal.id}` && method === 'GET') return json(route, proposal);
+  if (pathname === `/admin/proposals/${perGuestProposal.id}` && method === 'GET') return json(route, perGuestProposal);
 
   return json(route, {});
 }

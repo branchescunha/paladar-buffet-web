@@ -36,7 +36,7 @@ export function AdminLayout() {
           <UserInfo><span>{admin?.name}</span><small>{admin?.email}</small><Role>Administrador</Role></UserInfo>
           <IconButton type="button" aria-label={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} title={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setDarkMode((current) => !current)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</IconButton>
           <IconButton as={Link} to="/change-password" aria-label="Alterar senha" title="Alterar senha"><KeyRound size={18} /></IconButton>
-          <LogoutButton type="button" onClick={handleLogout} disabled={logout.isPending}><LogOut size={18} /><span>Sair</span></LogoutButton>
+          <LogoutButton type="button" aria-label="Sair" title="Sair" onClick={handleLogout} disabled={logout.isPending}><LogOut size={18} /><span>Sair</span></LogoutButton>
         </Header>
         <Main><Outlet /></Main>
       </Content>

@@ -13,7 +13,43 @@ const mobileViewports = [
   { width: 430, height: 932 },
   { width: 390, height: 844 },
   { width: 375, height: 812 },
+  { width: 320, height: 720 },
   { width: 360, height: 800 }
+];
+
+const publicMenuCatalog = [
+  {
+    id: 'group-entradas', name: 'Entradas', minSelections: 2, maxSelections: 3, position: 1, isActive: true,
+    sections: [{
+      id: 'section-quentes', name: 'Entradas quentes', position: 1, isActive: true,
+      options: [
+        { id: 'option-fricasse', name: 'Fricass\u00ea de frango', position: 1, isActive: true },
+        { id: 'option-escondidinho', name: 'Escondidinho de carne-seca', position: 2, isActive: true },
+        { id: 'option-barquete', name: 'Barquete de guacamole', position: 3, isActive: true }
+      ]
+    }]
+  },
+  {
+    id: 'group-bebidas', name: 'Bebidas', minSelections: 1, maxSelections: 2, position: 2, isActive: true,
+    sections: [{
+      id: 'section-bebidas', name: 'Bebidas', position: 1, isActive: true,
+      options: [
+        { id: 'option-suco', name: 'Sucos naturais', position: 1, isActive: true },
+        { id: 'option-refrigerante', name: 'Refrigerantes', position: 2, isActive: true }
+      ]
+    }]
+  },
+  {
+    id: 'group-cafe', name: 'Mesa do caf\u00e9', minSelections: 0, maxSelections: null, position: 3, isActive: true,
+    sections: [{
+      id: 'section-cafe', name: 'Mesa do caf\u00e9', position: 1, isActive: true,
+      options: [
+        { id: 'option-cafe', name: 'Caf\u00e9', position: 1, isActive: true },
+        { id: 'option-cha', name: 'Ch\u00e1s', position: 2, isActive: true },
+        { id: 'option-petit-four', name: 'Petit fours', position: 3, isActive: true }
+      ]
+    }]
+  }
 ];
 
 test.describe('public mobile responsive closeout', () => {
@@ -176,7 +212,7 @@ test.describe('public mobile responsive closeout', () => {
 
   for (const route of ['/', '/orcamento', '/privacidade']) {
     test(`keeps the legal footer readable on mobile at ${route}`, async ({ page }) => {
-      await page.setViewportSize({ width: 360, height: 800 });
+      await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(route);
 
       const footer = page.locator('footer');
@@ -276,4 +312,34 @@ test.describe('public mobile responsive closeout', () => {
     expect(layout.maxRight).toBeLessThanOrEqual(layout.viewportWidth);
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewportWidth + 1);
   });
+
+  for (const viewport of mobileViewports) {
+    test(`keeps the dynamic menu usable and contained at ${viewport.width}px`, async ({ page }) => {
+      await page.route('**/menu', (route) => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(publicMenuCatalog)
+      }));
+      await page.setViewportSize(viewport);
+      await page.goto('/orcamento');
+
+      await expect(page.getByRole('group', { name: 'Entradas' })).toContainText('Escolha de 2 a 3');
+      await expect(page.getByLabel('Escondidinho de carne-seca')).toBeVisible();
+      await expect(page.getByRole('group', { name: 'Bebidas' })).toContainText('Escolha de 1 a 2');
+      await expect(page.getByLabel('Sucos naturais')).toBeVisible();
+      await expect(page.getByRole('group', { name: 'Mesa do caf\u00e9' })).toContainText('Escolha livre');
+      await expect(page.getByLabel('Petit fours')).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+
+      const controls = await page.locator('form input, form select, form textarea, form button').evaluateAll((elements) => ({
+        viewportWidth: window.innerWidth,
+        offenders: elements.flatMap((element) => {
+          if (element instanceof HTMLInputElement && element.name === 'website') return [];
+          const box = element.getBoundingClientRect();
+          return box.left >= -1 && box.right <= window.innerWidth + 1 ? [] : [{ left: box.left, right: box.right }];
+        })
+      }));
+      expect(controls.offenders).toEqual([]);
+    });
+  }
 });
