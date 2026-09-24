@@ -3,13 +3,14 @@ import styled from 'styled-components';
 
 interface ConfirmDeleteDialogProps {
   title: string;
+  description?: string;
   confirmLabel: string;
   isPending: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function ConfirmDeleteDialog({ title, confirmLabel, isPending, onCancel, onConfirm }: ConfirmDeleteDialogProps) {
+export function ConfirmDeleteDialog({ title, description = 'Esta ação não poderá ser desfeita.', confirmLabel, isPending, onCancel, onConfirm }: ConfirmDeleteDialogProps) {
   const titleId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -20,7 +21,7 @@ export function ConfirmDeleteDialog({ title, confirmLabel, isPending, onCancel, 
   return <Backdrop onMouseDown={(event) => { if (event.target === event.currentTarget && !isPending) onCancel(); }}>
     <Dialog role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={`${titleId}-description`} onKeyDown={(event) => { if (event.key === 'Escape' && !isPending) onCancel(); }}>
       <h2 id={titleId}>{title}</h2>
-      <p id={`${titleId}-description`}>Esta ação não poderá ser desfeita.</p>
+      <p id={`${titleId}-description`}>{description}</p>
       <Actions>
         <CancelButton ref={cancelRef} type="button" disabled={isPending} onClick={onCancel}>Cancelar</CancelButton>
         <DeleteButton type="button" disabled={isPending} onClick={onConfirm}>{isPending ? 'Excluindo...' : confirmLabel}</DeleteButton>

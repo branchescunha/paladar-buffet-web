@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { updateOwnAdminName } from '@/features/admin-users/admin-users.service';
+import { updateOwnAdminProfile } from '@/features/admin-users/admin-users.service';
 import { useCurrentAdmin } from '@/features/auth/useAuth';
 import { getApiErrorMessage } from '@/services/api';
 
@@ -10,17 +10,20 @@ export function AdminProfilePage() {
   const { data: admin } = useCurrentAdmin();
   const client = useQueryClient();
   const [name, setName] = useState('');
+  const [commercialTitle, setCommercialTitle] = useState('Administrador');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   useEffect(() => setName(admin?.name ?? ''), [admin?.name]);
+  useEffect(() => setCommercialTitle(admin?.commercialTitle ?? 'Administrador'), [admin?.commercialTitle]);
   const save = useMutation({
-    mutationFn: () => updateOwnAdminName(name.trim()),
-    onSuccess: (updated) => { client.setQueryData(['current-admin'], (current: typeof updated | undefined) => current ? { ...current, name: updated.name } : updated); setMessage({ type: 'success', text: 'Perfil atualizado.' }); },
+    mutationFn: () => updateOwnAdminProfile({ name: name.trim(), commercialTitle: commercialTitle.trim() }),
+    onSuccess: (updated) => { client.setQueryData(['current-admin'], (current: typeof updated | undefined) => current ? { ...current, name: updated.name, commercialTitle: updated.commercialTitle } : updated); setMessage({ type: 'success', text: 'Perfil atualizado.' }); },
     onError: (error) => setMessage({ type: 'error', text: getApiErrorMessage(error) })
   });
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setMessage(null); save.mutate(); }
 
   return <Page><header><Eyebrow>Conta</Eyebrow><h1>Perfil</h1><p>Dados da sua conta administrativa.</p></header><Panel as="form" onSubmit={submit}>
-    <Field><label htmlFor="profile-name">Nome</label><input id="profile-name" required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></Field>
+    <Field><label htmlFor="profile-name">Nome de exibição</label><input id="profile-name" required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></Field>
+    <Field><label htmlFor="profile-title">Cargo comercial</label><input id="profile-title" required minLength={2} maxLength={120} value={commercialTitle} onChange={(event) => setCommercialTitle(event.target.value)} /></Field>
     <Field><label htmlFor="profile-email">E-mail</label><input id="profile-email" value={admin?.email ?? ''} readOnly /></Field>
     <Field><label htmlFor="profile-role">Função</label><input id="profile-role" value="Administrador" readOnly /></Field>
     {message ? <Notice $type={message.type} role={message.type === 'error' ? 'alert' : 'status'}>{message.text}</Notice> : null}

@@ -1,19 +1,21 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminQuoteRequestsPage } from './AdminQuoteRequestsPage';
 import { renderWithProviders } from '@/test/render';
 
 const serviceMocks = vi.hoisted(() => ({
-  updateStatus: vi.fn().mockResolvedValue({ id: 'quote-1', status: 'EM_ANALISE' })
+  updateStatus: vi.fn().mockResolvedValue({ id: 'quote-1', status: 'EM_ANALISE' }),
+  deleteQuoteRequest: vi.fn(),
+  deleted: false
 }));
 
 vi.mock('@/features/admin-quote-requests/admin-quote-requests.service', () => ({
   quoteRequestStatuses: ['NOVA', 'EM_ANALISE', 'PROPOSTA_ENVIADA', 'APROVADA', 'RECUSADA', 'CANCELADA'],
   fetchAdminQuoteRequests: () =>
     Promise.resolve({
-      total: 1,
-      items: [
+      total: serviceMocks.deleted ? 0 : 1,
+      items: serviceMocks.deleted ? [] : [
         {
           id: 'quote-1',
           fullName: 'Ana Souza',
@@ -58,7 +60,8 @@ vi.mock('@/features/admin-quote-requests/admin-quote-requests.service', () => ({
       createdAt: '2099-08-20T12:00:00.000Z',
       updatedAt: '2099-08-20T12:00:00.000Z'
     }),
-  updateAdminQuoteRequestStatus: serviceMocks.updateStatus
+  updateAdminQuoteRequestStatus: serviceMocks.updateStatus,
+  deleteAdminQuoteRequest: serviceMocks.deleteQuoteRequest
 }));
 
 vi.mock('@/features/admin-crm/crm.service', () => ({
@@ -67,6 +70,13 @@ vi.mock('@/features/admin-crm/crm.service', () => ({
 }));
 
 describe('AdminQuoteRequestsPage', () => {
+  beforeEach(() => {
+    serviceMocks.deleted = false;
+    serviceMocks.deleteQuoteRequest.mockReset().mockImplementation(async () => {
+      serviceMocks.deleted = true;
+    });
+  });
+
   it('opens full request details and updates its status', async () => {
     const user = userEvent.setup();
     renderWithProviders(<AdminQuoteRequestsPage />);
@@ -87,5 +97,32 @@ describe('AdminQuoteRequestsPage', () => {
     await user.selectOptions(screen.getByLabelText('Status'), 'EM_ANALISE');
 
     expect(serviceMocks.updateStatus.mock.calls[0]?.[0]).toEqual({ id: 'quote-1', status: 'EM_ANALISE' });
+  });
+
+  it('does not delete when confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<AdminQuoteRequestsPage />);
+    await user.click(await screen.findByRole('button', { name: /ana souza/i }));
+    await user.click(screen.getByRole('button', { name: 'Excluir solicitação' }));
+
+    const dialog = screen.getByRole('alertdialog', { name: 'Excluir solicitação?' });
+    expect(within(dialog).getByText(/clientes, eventos e propostas já criados não serão excluídos/i)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+
+    expect(serviceMocks.deleteQuoteRequest).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('deletes after confirmation, clears selection and refreshes the request list', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<AdminQuoteRequestsPage />);
+    await user.click(await screen.findByRole('button', { name: /ana souza/i }));
+    await user.click(screen.getByRole('button', { name: 'Excluir solicitação' }));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Excluir solicitação' }));
+
+    expect(await screen.findByText('Solicitação excluída com sucesso.')).toBeInTheDocument();
+    expect(screen.getByText('Selecione uma solicitação para ver os detalhes.')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('button', { name: /ana souza/i })).not.toBeInTheDocument());
+    expect(serviceMocks.deleteQuoteRequest).toHaveBeenCalledWith('quote-1');
   });
 });

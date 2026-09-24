@@ -94,13 +94,14 @@ describe('AppRoutes', () => {
   it.each(['OWNER', 'ADMIN'] as const)('renders the profile page for %s', async (role) => {
     useCurrentAdminMock.mockReturnValue({
       isLoading: false,
-      data: { id: 'admin-1', name: 'Ana', email: 'ana@paladarbuffet.com', role, avatarUrl: null, mustChangePassword: false }
+      data: { id: 'admin-1', name: 'Ana', commercialTitle: 'Administrador', email: 'ana@paladarbuffet.com', role, avatarUrl: null, mustChangePassword: false }
     });
     renderWithProviders(<AppRoutes />, ['/admin/profile']);
 
     expect(await screen.findByRole('heading', { name: 'Perfil' })).toBeInTheDocument();
     expect(screen.getByDisplayValue('ana@paladarbuffet.com')).toHaveAttribute('readonly');
-    expect(screen.getByDisplayValue('Administrador')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('Função')).toHaveValue('Administrador');
+    expect(screen.getByLabelText('Função')).toHaveAttribute('readonly');
     expect(screen.getAllByText('ana@paladarbuffet.com')).toHaveLength(1);
   });
 });

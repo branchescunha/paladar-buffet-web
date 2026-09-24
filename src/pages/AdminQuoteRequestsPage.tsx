@@ -3,7 +3,9 @@ import { ChevronRight, FilePlus2, Search, UserRoundPlus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { ConfirmDeleteDialog } from '@/components/admin/ConfirmDeleteDialog';
 import {
+  deleteAdminQuoteRequest,
   fetchAdminQuoteRequest,
   fetchAdminQuoteRequests,
   quoteRequestStatuses,
@@ -31,6 +33,8 @@ export function AdminQuoteRequestsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [conversionMessage, setConversionMessage] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deletionMessage, setDeletionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const list = useQuery({
@@ -75,6 +79,26 @@ export function AdminQuoteRequestsPage() {
     onSuccess: (proposal) => navigate(`/admin/proposals?proposal=${proposal.id}`),
     onError: (error) => setConversionMessage(getApiErrorMessage(error))
   });
+  const remove = useMutation({
+    mutationFn: () => deleteAdminQuoteRequest(selectedId ?? ''),
+    onSuccess: async () => {
+      const deletedId = selectedId;
+      setSelectedId(null);
+      setSelectedCustomerId('');
+      setConfirmingDelete(false);
+      setConversionMessage(null);
+      setDeletionMessage({ type: 'success', text: 'Solicitação excluída com sucesso.' });
+      if (deletedId) queryClient.removeQueries({ queryKey: ['admin-quote-request', deletedId], exact: true });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-quote-requests'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
+      ]);
+    },
+    onError: (error) => {
+      setConfirmingDelete(false);
+      setDeletionMessage({ type: 'error', text: getApiErrorMessage(error) });
+    }
+  });
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,6 +133,7 @@ export function AdminQuoteRequestsPage() {
         </StatusSelect>
         <SearchButton type="submit">Buscar</SearchButton>
       </Filters>
+      {deletionMessage ? <Feedback role={deletionMessage.type === 'error' ? 'alert' : 'status'}>{deletionMessage.text}</Feedback> : null}
 
       <ContentGrid>
         <ListPanel>
@@ -189,14 +214,27 @@ export function AdminQuoteRequestsPage() {
                 </button>
                 {conversionMessage ? <p role="status">{conversionMessage}</p> : null}
               </ConversionAction>
-              <ProposalButton type="button" disabled={createProposal.isPending} onClick={() => createProposal.mutate()}>
-                <FilePlus2 size={18} />
-                {createProposal.isPending ? 'Criando...' : 'Criar proposta'}
-              </ProposalButton>
+              <ActionRow>
+                <ProposalButton type="button" disabled={createProposal.isPending || remove.isPending} onClick={() => createProposal.mutate()}>
+                  <FilePlus2 size={18} />
+                  {createProposal.isPending ? 'Criando...' : 'Criar proposta'}
+                </ProposalButton>
+                <DeleteButton type="button" disabled={createProposal.isPending || remove.isPending} onClick={() => setConfirmingDelete(true)}>
+                  Excluir solicitação
+                </DeleteButton>
+              </ActionRow>
             </>
           ) : null}
         </DetailPanel>
       </ContentGrid>
+      {confirmingDelete ? <ConfirmDeleteDialog
+        title="Excluir solicitação?"
+        description="Esta ação removerá permanentemente esta solicitação. Clientes, eventos e propostas já criados não serão excluídos."
+        confirmLabel="Excluir solicitação"
+        isPending={remove.isPending}
+        onCancel={() => setConfirmingDelete(false)}
+        onConfirm={() => remove.mutate()}
+      /> : null}
     </Page>
   );
 }
@@ -553,6 +591,23 @@ const ProposalButton = styled.button`
   small {
     font-weight: 600;
   }
+`;
+
+const ActionRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const DeleteButton = styled.button`
+  min-height: 2.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.danger};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.danger};
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0 ${({ theme }) => theme.spacing.lg};
 `;
 
 const ConversionAction = styled.div`

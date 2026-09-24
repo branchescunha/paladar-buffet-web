@@ -64,3 +64,7 @@ export async function updateAdminQuoteRequestStatus(input: { id: string; status:
   );
   return response.data;
 }
+
+export async function deleteAdminQuoteRequest(id: string) {
+  await api.delete(`/admin/quote-requests/${id}`);
+}
