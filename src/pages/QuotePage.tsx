@@ -16,8 +16,8 @@ import { fetchPublicMenu, menuSelectionInstruction, validateMenuSelection } from
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { submitQuoteRequest } from '@/services/quote-request.service';
 
-const publicSubmitErrorMessage =
-  'Não foi possível enviar sua solicitação agora. Tente novamente em instantes ou fale conosco pelo WhatsApp.';
+const publicSubmitErrorMessage = 'Não foi possível enviar sua solicitação. Tente novamente.';
+const validationErrorMessage = 'Não foi possível enviar. Revise os campos destacados acima.';
 
 export function QuotePage() {
   const [success, setSuccess] = useState(false);
@@ -63,6 +63,7 @@ export function QuotePage() {
     const selectionErrors = validateMenuSelection(menu.data ?? [], data.menuOptionIds);
     setMenuErrors(selectionErrors);
     if (!menu.data || Object.keys(selectionErrors).length > 0) {
+      setError(validationErrorMessage);
       return;
     }
     try {
@@ -103,7 +104,10 @@ export function QuotePage() {
             </AsideItem>
           </Aside>
 
-          <FormPanel onSubmit={form.handleSubmit(onSubmit)} noValidate>
+          <FormPanel onSubmit={form.handleSubmit(onSubmit, () => {
+            setSuccess(false);
+            setError(validationErrorMessage);
+          })} noValidate>
             <Honeypot aria-hidden="true">
               <label htmlFor="website">Website</label>
               <input id="website" tabIndex={-1} autoComplete="off" {...form.register('website')} />

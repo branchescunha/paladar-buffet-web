@@ -41,6 +41,7 @@ describe('QuotePage', () => {
     expect(screen.getByText('Informe um telefone válido com DDD.')).toBeInTheDocument();
     expect(screen.getByText('Selecione o tipo de evento.')).toBeInTheDocument();
     expect(screen.getByText('Informe o horário previsto.')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível enviar. Revise os campos destacados acima.');
     expect(screen.queryByText(/invalid enum|expected|received|zod|prisma/i)).not.toBeInTheDocument();
   });
 
@@ -118,7 +119,7 @@ describe('QuotePage', () => {
     await userEvent.click(screen.getByLabelText(/li e aceito/i));
     await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }));
 
-    expect(await screen.findByText(/não foi possível enviar sua solicitação agora/i)).toBeInTheDocument();
+    expect(await screen.findByText('Não foi possível enviar sua solicitação. Tente novamente.')).toBeInTheDocument();
     expect(screen.queryByText(/invalid enum|expected|received|zod|prisma/i)).not.toBeInTheDocument();
   });
 

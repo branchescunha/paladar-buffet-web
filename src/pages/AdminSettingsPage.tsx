@@ -76,7 +76,7 @@ export function AdminSettingsPage() {
 
       <Section>
         <SectionHeading>
-          <div><h2>Formas de pagamento</h2><p>Cadastre instruções e chave Pix quando aplicável.</p></div>
+          <div><h2>Formas de pagamento</h2><p>Cadastre instruções e chave quando aplicável.</p></div>
         </SectionHeading>
         {payments.isLoading ? <Feedback>Carregando formas de pagamento...</Feedback> : null}
         {payments.isError ? <Error role="alert">Não foi possível carregar as formas de pagamento.</Error> : null}
@@ -213,13 +213,13 @@ function PaymentEditor({ method, busy, run }: { method: PaymentMethod; busy: boo
   const [instructions, setInstructions] = useState(method.instructions ?? '');
   const [pixKey, setPixKey] = useState(method.pixKey ?? '');
   const [position, setPosition] = useState(String(method.position));
-  const input = { name, instructions: instructions || undefined, pixKey: pixKey || undefined, position: Number(position), isActive: method.isActive };
+  const input = { name, instructions, pixKey, position: Number(position), isActive: method.isActive };
 
   return (
     <InlineForm onSubmit={(event) => { event.preventDefault(); void run(() => updatePaymentMethod(method.id, input), 'Forma de pagamento atualizada.'); }}>
       <Field><label htmlFor={`payment-name-${method.id}`}>Nome</label><input id={`payment-name-${method.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
       <Field><label htmlFor={`payment-instructions-${method.id}`}>Instruções</label><input id={`payment-instructions-${method.id}`} value={instructions} onChange={(event) => setInstructions(event.target.value)} /></Field>
-      <Field><label htmlFor={`payment-pix-${method.id}`}>Chave Pix</label><input id={`payment-pix-${method.id}`} value={pixKey} onChange={(event) => setPixKey(event.target.value)} /></Field>
+      <Field><label htmlFor={`payment-pix-${method.id}`}>Chave</label><input id={`payment-pix-${method.id}`} value={pixKey} onChange={(event) => setPixKey(event.target.value)} /></Field>
       <SmallField><label htmlFor={`payment-position-${method.id}`}>Ordem</label><input id={`payment-position-${method.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
       <Actions>
         <PrimaryButton disabled={busy}>Salvar</PrimaryButton>

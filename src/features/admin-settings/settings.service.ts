@@ -59,8 +59,8 @@ export interface PaymentMethod {
 
 export interface PaymentMethodInput {
   name: string;
-  instructions?: string;
-  pixKey?: string;
+  instructions?: string | null;
+  pixKey?: string | null;
   position: number;
   isActive: boolean;
 }

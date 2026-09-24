@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { ConfirmDeleteDialog } from '@/components/admin/ConfirmDeleteDialog';
 import { fetchCustomers, fetchEvents } from '@/features/admin-crm/crm.service';
@@ -57,9 +58,10 @@ function hydrateProposal(proposal: Proposal): ProposalInput {
 
 export function AdminProposalsPage() {
   const client = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ProposalStatus | ''>('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get('proposal'));
   const [form, setForm] = useState<ProposalInput>(() => emptyProposal());
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminSettingsPage } from './AdminSettingsPage';
@@ -48,5 +48,27 @@ describe('AdminSettingsPage', () => {
     await waitFor(() => expect(services.createMenuOption).toHaveBeenCalledWith({
       sectionId: 'rice', name: 'Arroz com brócolis', position: 2, isActive: true
     }));
+  });
+
+  it('clears optional payment fields and uses the generic key label', async () => {
+    services.fetchPaymentMethods.mockResolvedValue([{
+      id: 'pix', name: 'Pix', instructions: 'Identificar o pagamento', pixKey: 'chave anterior', position: 1, isActive: true
+    }]);
+    services.updatePaymentMethod.mockResolvedValue({
+      id: 'pix', name: 'Pix', instructions: null, pixKey: null, position: 1, isActive: true
+    });
+    const user = userEvent.setup();
+
+    renderWithProviders(<AdminSettingsPage />, ['/admin/settings']);
+
+    await user.clear(await screen.findByLabelText('Instruções'));
+    const keyInput = screen.getByLabelText('Chave');
+    await user.clear(keyInput);
+    await user.click(within(keyInput.closest('form')!).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(services.updatePaymentMethod).toHaveBeenCalledWith('pix', {
+      name: 'Pix', instructions: '', pixKey: '', position: 1, isActive: true
+    }));
+    expect(screen.queryByText('Chave Pix')).not.toBeInTheDocument();
   });
 });

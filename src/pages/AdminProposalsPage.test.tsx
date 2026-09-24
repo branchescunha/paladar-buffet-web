@@ -57,7 +57,10 @@ const perGuestProposal = {
     { id: 'installment-2', description: 'No dia do evento', percentage: 50, position: 1, amountCents: 500000 }
   ],
   paymentMethods: [{ id: 'snapshot-1', paymentMethodId: 'payment-pix', name: 'Pix', pixKey: 'chave histórica', instructions: 'Pagamento identificado', position: 0 }],
-  menuSelections: [{ id: 'menu-1', groupName: 'Entradas quentes', groupPosition: 1, sectionName: 'Entradas quentes', sectionPosition: 1, optionName: 'Fricassê de frango', optionPosition: 1 }],
+  menuSelections: [
+    { id: 'menu-1', groupName: 'Entradas', groupPosition: 1, sectionName: 'Entradas quentes', sectionPosition: 1, optionName: 'Fricassê de frango', optionPosition: 1 },
+    { id: 'menu-2', groupName: 'Acompanhamentos', groupPosition: 2, sectionName: 'Massas', sectionPosition: 2, optionName: 'Penne ao molho quatro queijos', optionPosition: 1 }
+  ],
   responsibleNameSnapshot: 'André Cunha',
   responsibleTitleSnapshot: 'Administrador'
 };
@@ -115,10 +118,21 @@ describe('AdminProposalsPage', () => {
     expect(screen.getByLabelText('Valor por pessoa')).toHaveValue('129,90');
     expect(screen.getByRole('heading', { name: 'Cardápio selecionado' })).toBeInTheDocument();
     expect(screen.getByText('Fricassê de frango')).toBeInTheDocument();
+    expect(screen.getByText('Penne ao molho quatro queijos')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Buffet')).toBeInTheDocument();
     expect(screen.getByLabelText('Pix')).toBeChecked();
     expect(screen.getByText('chave histórica')).toBeInTheDocument();
     expect(screen.getByText('André Cunha')).toBeInTheDocument();
+  });
+
+  it('opens the proposal selected by the quote request redirect', async () => {
+    proposalMocks.fetchProposal.mockResolvedValue(perGuestProposal);
+
+    renderWithProviders(<AdminProposalsPage />, ['/admin/proposals?proposal=proposal-per-guest']);
+
+    await waitFor(() => expect(proposalMocks.fetchProposal).toHaveBeenCalledWith('proposal-per-guest'));
+    expect(await screen.findByText('Fricassê de frango')).toBeInTheDocument();
+    expect(screen.getByText('Penne ao molho quatro queijos')).toBeInTheDocument();
   });
 
   it('rehydrates all persisted items and monetary values when reopening a proposal', async () => {
