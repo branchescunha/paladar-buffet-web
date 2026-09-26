@@ -185,7 +185,8 @@ const MetricGrid = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing.sm};
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 `;
 
@@ -214,6 +215,16 @@ const MetricCard = styled.article`
   p {
     font-size: 0.8rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 7.5rem;
+    gap: ${({ theme }) => theme.spacing.sm};
+    padding: ${({ theme }) => theme.spacing.sm};
+
+    h2 { font-size: 0.75rem; }
+    strong { font-size: 1.35rem; }
+    p { font-size: 0.7rem; line-height: 1.35; }
+  }
 `;
 
 const MetricIcon = styled.span`
@@ -226,6 +237,11 @@ const MetricIcon = styled.span`
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.colors.accentMuted};
   color: ${({ theme }) => theme.colors.accent};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 2rem;
+    height: 2rem;
+  }
 `;
 
 const RecentSection = styled.section`

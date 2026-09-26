@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from '@playwright/test';
+import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
 
 test.setTimeout(90_000);
 
@@ -6,6 +6,7 @@ const admin = {
   id: 'admin-1',
   name: 'Administrador Paladar Buffet',
   email: 'administrativo.paladar@gmail.com',
+  commercialTitle: 'Gerente Comercial',
   role: 'ADMIN',
   isActive: true,
   mustChangePassword: false,
@@ -145,7 +146,7 @@ const perGuestProposal = {
   responsibleTitleSnapshot: 'Administrador'
 };
 
-const viewports = [320, 375, 390, 430];
+const viewports = [320, 375, 390, 430, 768];
 const adminRoutes = [
   ['/admin', 'Painel administrativo'],
   ['/admin/quotes', 'Solicita'],
@@ -177,11 +178,14 @@ for (const width of viewports) {
       await page.goto(path);
       await expect(page.locator('h1').filter({ hasText: heading })).toBeVisible();
       await expect(page.getByRole('banner').first().getByText(admin.name, { exact: true })).toBeVisible();
+      await expect(page.getByRole('banner').first().getByText(admin.email, { exact: true })).toBeHidden();
       await expect(page.getByRole('button', { name: /Usar tema/i })).toBeVisible();
-      await expect(page.getByTitle('Alterar senha')).toBeVisible();
+      await expect(page.getByTitle('Alterar senha')).toBeHidden();
       await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+      await expect(page.getByRole('banner').first()).toHaveCSS('position', 'fixed');
 
       if (path === '/admin') {
+        await expectDashboardGrid(page);
         await page.getByRole('button', { name: /^Abrir navega/i }).click();
         await expect(page.getByLabel(/Navega.*administrativa/i)).toBeVisible();
         await expectContainedLayout(page, `${path} drawer`);
@@ -207,9 +211,68 @@ for (const width of viewports) {
         await expect(page.getByText('R$ 675,00')).toBeVisible();
       }
 
+      if (path === '/admin/settings') {
+        await expectSameRowByRole([
+          page.locator('#group-min-menu-group-1'),
+          page.locator('#group-max-menu-group-1'),
+          page.locator('#group-position-menu-group-1')
+        ]);
+        await expectSameRowByRole([
+          page.locator('#section-name-menu-section-1'),
+          page.locator('#section-position-menu-section-1')
+        ]);
+        await expectSameRowByRole([
+          page.locator('#payment-name-payment-1'),
+          page.locator('#payment-position-payment-1')
+        ]);
+      }
+
+      if (path === '/admin/profile') {
+        await expectSameRowByRole([
+          page.getByRole('button', { name: 'Salvar perfil' }),
+          page.getByRole('link', { name: 'Alterar senha' })
+        ]);
+      }
+
+      if (path === '/admin/users') {
+        await expect(page.getByText('Gerente Comercial')).toBeVisible();
+      }
+
       await expectContainedLayout(page, path);
     }
   });
+}
+
+test('preserves the approved desktop admin header and sidebar', async ({ page }) => {
+  await page.route('**/*', (route) => {
+    const resourceType = route.request().resourceType();
+    return resourceType === 'fetch' || resourceType === 'xhr' ? mockApi(route, true) : route.continue();
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/admin');
+
+  await expect(page.getByRole('banner').first()).not.toHaveCSS('position', 'fixed');
+  await expect(page.getByRole('banner').first().getByText(admin.email, { exact: true })).toBeVisible();
+  await expect(page.getByTitle('Alterar senha')).toBeVisible();
+  await expect(page.getByLabel(/Navegação administrativa/i)).toBeVisible();
+  await expectContainedLayout(page, '/admin desktop');
+});
+
+async function expectDashboardGrid(page: Page) {
+  const cards = page.locator('main article');
+  await expect(cards).toHaveCount(4);
+  const boxes = await cards.evaluateAll((elements) => elements.map((element) => {
+    const box = element.getBoundingClientRect();
+    return { top: Math.round(box.top), left: Math.round(box.left) };
+  }));
+  expect(boxes[0].top).toBe(boxes[1].top);
+  expect(boxes[2].top).toBe(boxes[3].top);
+  expect(boxes[2].top).toBeGreaterThan(boxes[0].top);
+}
+
+async function expectSameRowByRole(elements: Locator[]) {
+  const tops = await Promise.all(elements.map(async (element) => Math.round((await element.boundingBox())?.y ?? -1)));
+  expect(new Set(tops).size).toBe(1);
 }
 
 for (const width of viewports) {

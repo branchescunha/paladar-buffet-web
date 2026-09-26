@@ -126,9 +126,11 @@ function GroupEditor({ group, busy, run }: { group: AdminMenuGroup; busy: boolea
       </RuleHeader>
       <InlineForm onSubmit={save}>
         <Field><label htmlFor={`group-name-${group.id}`}>Nome</label><input id={`group-name-${group.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
-        <SmallField><label htmlFor={`group-min-${group.id}`}>Mínimo</label><input id={`group-min-${group.id}`} type="number" min="0" value={min} onChange={(event) => setMin(event.target.value)} required /></SmallField>
-        <SmallField><label htmlFor={`group-max-${group.id}`}>Máximo</label><input id={`group-max-${group.id}`} type="number" min="0" value={max} onChange={(event) => setMax(event.target.value)} placeholder="Livre" /></SmallField>
-        <SmallField><label htmlFor={`group-position-${group.id}`}>Ordem</label><input id={`group-position-${group.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+        <NumericFields>
+          <SmallField><label htmlFor={`group-min-${group.id}`}>Mínimo</label><input id={`group-min-${group.id}`} type="number" min="0" value={min} onChange={(event) => setMin(event.target.value)} required /></SmallField>
+          <SmallField><label htmlFor={`group-max-${group.id}`}>Máximo</label><input id={`group-max-${group.id}`} type="number" min="0" value={max} onChange={(event) => setMax(event.target.value)} placeholder="Livre" /></SmallField>
+          <SmallField><label htmlFor={`group-position-${group.id}`}>Ordem</label><input id={`group-position-${group.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+        </NumericFields>
         <Actions>
           <PrimaryButton disabled={busy}>Salvar grupo</PrimaryButton>
           <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuGroup(group.id, { name, minSelections: Number(min), maxSelections: max === '' ? null : Number(max), position: Number(position), isActive: !group.isActive }), group.isActive ? 'Grupo desativado.' : 'Grupo ativado.')}>{group.isActive ? 'Desativar' : 'Ativar'}</SecondaryButton>
@@ -163,8 +165,10 @@ function SectionEditor({ section, busy, run }: { section: AdminMenuSection; busy
   return (
     <Subsection>
       <InlineForm onSubmit={(event) => { event.preventDefault(); void run(() => updateMenuSection(section.id, sectionInput), 'Seção atualizada.'); }}>
-        <Field><label htmlFor={`section-name-${section.id}`}>Seção</label><input id={`section-name-${section.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
-        <SmallField><label htmlFor={`section-position-${section.id}`}>Ordem</label><input id={`section-position-${section.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+        <NameOrderFields>
+          <Field><label htmlFor={`section-name-${section.id}`}>Seção</label><input id={`section-name-${section.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
+          <SmallField><label htmlFor={`section-position-${section.id}`}>Ordem</label><input id={`section-position-${section.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+        </NameOrderFields>
         <Actions>
           <SecondaryButton disabled={busy}>Salvar seção</SecondaryButton>
           <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuSection(section.id, { ...sectionInput, isActive: !section.isActive }), section.isActive ? 'Seção desativada.' : 'Seção ativada.')}>{section.isActive ? 'Desativar' : 'Ativar'}</SecondaryButton>
@@ -189,11 +193,15 @@ function OptionEditor({ sectionId, option, busy, run }: { sectionId: string; opt
 
   return (
     <OptionRow>
-      <input aria-label={`Nome da opção ${option.name}`} value={name} onChange={(event) => setName(event.target.value)} />
-      <input aria-label={`Ordem da opção ${option.name}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} />
-      <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuOption(option.id, input), 'Opção atualizada.')}>Salvar</SecondaryButton>
-      <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuOption(option.id, { ...input, isActive: !option.isActive }), option.isActive ? 'Opção desativada.' : 'Opção ativada.')}>{option.isActive ? 'Desativar' : 'Ativar'}</SecondaryButton>
-      <DangerButton type="button" disabled={busy} onClick={() => confirmDelete('Remover esta opção?') && run(() => deleteMenuOption(option.id), 'Opção removida.')}>Remover</DangerButton>
+      <OptionFields>
+        <input aria-label={`Nome da opção ${option.name}`} value={name} onChange={(event) => setName(event.target.value)} />
+        <input aria-label={`Ordem da opção ${option.name}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} />
+      </OptionFields>
+      <OptionActions>
+        <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuOption(option.id, input), 'Opção atualizada.')}>Salvar</SecondaryButton>
+        <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updateMenuOption(option.id, { ...input, isActive: !option.isActive }), option.isActive ? 'Opção desativada.' : 'Opção ativada.')}>{option.isActive ? 'Desativar' : 'Ativar'}</SecondaryButton>
+        <DangerButton type="button" disabled={busy} onClick={() => confirmDelete('Remover esta opção?') && run(() => deleteMenuOption(option.id), 'Opção removida.')}>Remover</DangerButton>
+      </OptionActions>
     </OptionRow>
   );
 }
@@ -217,10 +225,12 @@ function PaymentEditor({ method, busy, run }: { method: PaymentMethod; busy: boo
 
   return (
     <InlineForm onSubmit={(event) => { event.preventDefault(); void run(() => updatePaymentMethod(method.id, input), 'Forma de pagamento atualizada.'); }}>
-      <Field><label htmlFor={`payment-name-${method.id}`}>Nome</label><input id={`payment-name-${method.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
-      <Field><label htmlFor={`payment-instructions-${method.id}`}>Instruções</label><input id={`payment-instructions-${method.id}`} value={instructions} onChange={(event) => setInstructions(event.target.value)} /></Field>
-      <Field><label htmlFor={`payment-pix-${method.id}`}>Chave</label><input id={`payment-pix-${method.id}`} value={pixKey} onChange={(event) => setPixKey(event.target.value)} /></Field>
-      <SmallField><label htmlFor={`payment-position-${method.id}`}>Ordem</label><input id={`payment-position-${method.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+      <PaymentFields>
+        <Field><label htmlFor={`payment-name-${method.id}`}>Nome</label><input id={`payment-name-${method.id}`} value={name} onChange={(event) => setName(event.target.value)} required /></Field>
+        <Field><label htmlFor={`payment-instructions-${method.id}`}>Instruções</label><input id={`payment-instructions-${method.id}`} value={instructions} onChange={(event) => setInstructions(event.target.value)} /></Field>
+        <Field><label htmlFor={`payment-pix-${method.id}`}>Chave</label><input id={`payment-pix-${method.id}`} value={pixKey} onChange={(event) => setPixKey(event.target.value)} /></Field>
+        <SmallField><label htmlFor={`payment-position-${method.id}`}>Ordem</label><input id={`payment-position-${method.id}`} type="number" min="0" value={position} onChange={(event) => setPosition(event.target.value)} required /></SmallField>
+      </PaymentFields>
       <Actions>
         <PrimaryButton disabled={busy}>Salvar</PrimaryButton>
         <SecondaryButton type="button" disabled={busy} onClick={() => run(() => updatePaymentMethod(method.id, { ...input, isActive: !method.isActive }), method.isActive ? 'Forma de pagamento desativada.' : 'Forma de pagamento ativada.')}>{method.isActive ? 'Desativar' : 'Ativar'}</SecondaryButton>
@@ -250,25 +260,30 @@ function confirmDelete(message: string) {
 
 const Page = styled.section`display:grid;gap:${({ theme }) => theme.spacing.xl};h1,h2{margin:0;color:${({ theme }) => theme.colors.textStrong}}p{margin:${({ theme }) => theme.spacing.sm} 0 0;color:${({ theme }) => theme.colors.textMuted}}`;
 const Eyebrow = styled.span`color:${({ theme }) => theme.colors.accent};font-size:.75rem;font-weight:800;text-transform:uppercase;`;
-const Section = styled.section`display:grid;gap:${({ theme }) => theme.spacing.md};min-width:0;`;
+const Section = styled.section`display:grid;gap:${({ theme }) => theme.spacing.md};min-width:0;@media(max-width:${({ theme }) => theme.breakpoints.sm}){gap:${({ theme }) => theme.spacing.sm}}`;
 const SectionHeading = styled.div`display:flex;align-items:end;justify-content:space-between;gap:${({ theme }) => theme.spacing.md};`;
-const Stack = styled.div`display:grid;gap:${({ theme }) => theme.spacing.md};min-width:0;`;
+const Stack = styled.div`display:grid;gap:${({ theme }) => theme.spacing.md};min-width:0;@media(max-width:${({ theme }) => theme.breakpoints.sm}){gap:${({ theme }) => theme.spacing.sm}}`;
 const GroupCard = styled.article`display:grid;gap:${({ theme }) => theme.spacing.md};min-width:0;border:1px solid ${({ theme }) => theme.colors.border};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.surface};padding:${({ theme }) => theme.spacing.lg};@media(max-width:${({ theme }) => theme.breakpoints.sm}){padding:${({ theme }) => theme.spacing.md}}`;
 const RuleHeader = styled.div`display:flex;align-items:center;justify-content:space-between;gap:${({ theme }) => theme.spacing.md};div{display:grid;gap:${({ theme }) => theme.spacing.xs}}span{color:${({ theme }) => theme.colors.textMuted};font-size:.85rem}`;
 const Status = styled.span`border-radius:${({ theme }) => theme.radius.pill};background:${({ theme }) => theme.colors.surfaceAlt};color:${({ theme }) => theme.colors.textStrong}!important;font-weight:700;padding:${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};`;
-const InlineForm = styled.form`display:grid;grid-template-columns:minmax(10rem,1fr) repeat(3,minmax(5rem,.28fr));gap:${({ theme }) => theme.spacing.sm};min-width:0;border:1px solid ${({ theme }) => theme.colors.border};border-radius:${({ theme }) => theme.radius.md};padding:${({ theme }) => theme.spacing.md};@media(max-width:${({ theme }) => theme.breakpoints.lg}){grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:${({ theme }) => theme.breakpoints.sm}){grid-template-columns:1fr}`;
-const CompactForm = styled.form`display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:${({ theme }) => theme.spacing.sm};min-width:0;@media(max-width:${({ theme }) => theme.breakpoints.sm}){grid-template-columns:1fr}`;
+const InlineForm = styled.form`display:grid;grid-template-columns:minmax(10rem,1fr) repeat(3,minmax(5rem,.28fr));gap:${({ theme }) => theme.spacing.sm};min-width:0;border:1px solid ${({ theme }) => theme.colors.border};border-radius:${({ theme }) => theme.radius.md};padding:${({ theme }) => theme.spacing.md};@media(max-width:${({ theme }) => theme.breakpoints.lg}){grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:${({ theme }) => theme.breakpoints.md}){grid-template-columns:1fr;padding:${({ theme }) => theme.spacing.sm}}`;
+const CompactForm = styled.form`display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:${({ theme }) => theme.spacing.sm};min-width:0;@media(max-width:${({ theme }) => theme.breakpoints.sm}){grid-template-columns:minmax(0,1fr) auto;button{font-size:.75rem;padding:0 ${({ theme }) => theme.spacing.sm}}`;
 const Field = styled.div`display:grid;gap:${({ theme }) => theme.spacing.xs};min-width:0;label{color:${({ theme }) => theme.colors.textMuted};font-size:.78rem;font-weight:700}input{width:100%;min-width:0;min-height:2.5rem;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.elevated};color:${({ theme }) => theme.colors.textStrong};font:inherit;padding:0 ${({ theme }) => theme.spacing.sm}}`;
 const SmallField = styled(Field)``;
-const Actions = styled.div`display:flex;grid-column:1/-1;flex-wrap:wrap;gap:${({ theme }) => theme.spacing.sm};`;
+const NumericFields = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.md}){display:grid;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:${({ theme }) => theme.spacing.xs}}`;
+const NameOrderFields = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.md}){display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr) 4.75rem;gap:${({ theme }) => theme.spacing.xs}}`;
+const PaymentFields = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.md}){display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr) 4.75rem;grid-template-areas:'name order' 'instructions instructions' 'key key';gap:${({ theme }) => theme.spacing.sm};>div:nth-child(1){grid-area:name}>div:nth-child(2){grid-area:instructions}>div:nth-child(3){grid-area:key}>div:nth-child(4){grid-area:order}}`;
+const Actions = styled.div`display:flex;grid-column:1/-1;flex-wrap:wrap;gap:${({ theme }) => theme.spacing.sm};@media(max-width:${({ theme }) => theme.breakpoints.md}){flex-wrap:nowrap;justify-content:space-between;gap:${({ theme }) => theme.spacing.xs};button{min-width:0;flex:0 1 auto;font-size:.72rem;padding:0 .45rem}}`;
 const BaseButton = styled.button`min-height:2.5rem;border-radius:${({ theme }) => theme.radius.md};font-weight:700;padding:0 ${({ theme }) => theme.spacing.md};`;
 const PrimaryButton = styled(BaseButton)`border:0;background:${({ theme }) => theme.colors.accent};color:${({ theme }) => theme.palette.white};`;
 const SecondaryButton = styled(BaseButton)`border:1px solid ${({ theme }) => theme.colors.borderStrong};background:transparent;color:${({ theme }) => theme.colors.textStrong};`;
 const DangerButton = styled(SecondaryButton)`color:${({ theme }) => theme.colors.danger};`;
-const SubsectionList = styled.div`display:grid;gap:${({ theme }) => theme.spacing.md};`;
+const SubsectionList = styled.div`display:grid;gap:${({ theme }) => theme.spacing.md};@media(max-width:${({ theme }) => theme.breakpoints.sm}){gap:${({ theme }) => theme.spacing.sm}}`;
 const Subsection = styled.section`display:grid;gap:${({ theme }) => theme.spacing.sm};min-width:0;padding-left:${({ theme }) => theme.spacing.md};border-left:2px solid ${({ theme }) => theme.colors.border};@media(max-width:${({ theme }) => theme.breakpoints.sm}){padding-left:0;border-left:0}`;
 const Options = styled.div`display:grid;gap:${({ theme }) => theme.spacing.xs};`;
-const OptionRow = styled.div`display:grid;grid-template-columns:minmax(8rem,1fr) 5rem repeat(3,auto);gap:${({ theme }) => theme.spacing.xs};min-width:0;input{width:100%;min-width:0;min-height:2.5rem;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.elevated};color:${({ theme }) => theme.colors.textStrong};font:inherit;padding:0 ${({ theme }) => theme.spacing.sm}}@media(max-width:${({ theme }) => theme.breakpoints.lg}){grid-template-columns:minmax(0,1fr) 5rem;button{width:100%}}@media(max-width:${({ theme }) => theme.breakpoints.sm}){grid-template-columns:minmax(0,1fr)}`;
+const OptionRow = styled.div`display:grid;grid-template-columns:minmax(8rem,1fr) 5rem repeat(3,auto);gap:${({ theme }) => theme.spacing.xs};min-width:0;input{width:100%;min-width:0;min-height:2.5rem;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.elevated};color:${({ theme }) => theme.colors.textStrong};font:inherit;padding:0 ${({ theme }) => theme.spacing.sm}}@media(max-width:${({ theme }) => theme.breakpoints.lg}){grid-template-columns:minmax(0,1fr) 5rem;button{width:100%}}@media(max-width:${({ theme }) => theme.breakpoints.md}){grid-template-columns:minmax(0,1fr)}`;
+const OptionFields = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.md}){display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr) 4.75rem;gap:${({ theme }) => theme.spacing.xs}}`;
+const OptionActions = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.md}){display:grid;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:${({ theme }) => theme.spacing.xs};button{min-width:0;font-size:.72rem;padding:0 .35rem}}`;
 const Message = styled.p<{ $type: 'success' | 'error' }>`margin:0!important;color:${({ $type, theme }) => $type === 'success' ? theme.colors.accent : theme.colors.danger}!important;font-weight:700;`;
 const Feedback = styled.p`margin:0!important;`;
 const Error = styled(Feedback)`color:${({ theme }) => theme.colors.danger}!important;`;

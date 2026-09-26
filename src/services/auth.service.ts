@@ -6,11 +6,6 @@ export async function login(input: { email: string; password: string }) {
   return response.data.admin;
 }
 
-export async function googleLogin(idToken: string) {
-  const response = await api.post<{ admin: AdminUser }>('/auth/google', { idToken });
-  return response.data.admin;
-}
-
 export async function fetchCurrentAdmin() {
   const response = await api.get<{ admin: AdminUser }>('/auth/me');
   return response.data.admin;
