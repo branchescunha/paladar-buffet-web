@@ -106,6 +106,17 @@ describe('AdminProposalsPage', () => {
     expect(screen.queryByRole('button', { name: 'Adicionar item' })).not.toBeInTheDocument();
   });
 
+  it('keeps the native validity control shrinkable inside the proposal form', () => {
+    renderWithProviders(<AdminProposalsPage />);
+
+    expect(screen.getByLabelText('Validade')).toHaveStyle({
+      display: 'block',
+      inlineSize: '100%',
+      minInlineSize: '0',
+      maxInlineSize: '100%'
+    });
+  });
+
   it('hydrates the commercial snapshots without replacing them with current catalog data', async () => {
     proposalMocks.proposals = [{ ...perGuestProposal, items: undefined }];
     proposalMocks.fetchProposal.mockResolvedValue(perGuestProposal);

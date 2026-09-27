@@ -39,6 +39,20 @@ describe('AdminEventsPage deletion', () => {
     expect(await screen.findByText('Casamento')).toBeInTheDocument();
   });
 
+  it('keeps native date and time controls shrinkable inside the event form', () => {
+    renderWithProviders(<AdminEventsPage />);
+
+    for (const control of [screen.getByLabelText('Data'), screen.getByLabelText('Horário')]) {
+      expect(control).toHaveStyle({
+        display: 'block',
+        inlineSize: '100%',
+        minInlineSize: '0',
+        maxInlineSize: '100%'
+      });
+      expect(control.parentElement).toHaveStyle({ minWidth: '0' });
+    }
+  });
+
   it('shows deletion only for an existing event and hides it for a new event', async () => {
     const user = userEvent.setup();
     renderWithProviders(<AdminEventsPage />);

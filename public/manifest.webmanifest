@@ -2,7 +2,7 @@
   "name": "Paladar Buffet",
   "short_name": "Paladar",
   "description": "Buffet para eventos em Brasília e região, com atendimento personalizado e cardápios preparados para cada ocasião.",
-  "start_url": "/",
+  "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F7F5EF",

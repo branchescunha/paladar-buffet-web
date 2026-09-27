@@ -48,7 +48,7 @@ describe('public install and sharing metadata', () => {
       name: 'Paladar Buffet',
       short_name: 'Paladar',
       description,
-      start_url: '/',
+      start_url: '/admin',
       scope: '/',
       display: 'standalone',
       background_color: '#F7F5EF',

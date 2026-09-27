@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useMemo, useState, type Dispatch, type SetStateAc
 import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { ConfirmDeleteDialog } from '@/components/admin/ConfirmDeleteDialog';
+import { AdminNativeDateTimeInput } from '@/components/admin/AdminNativeDateTimeInput';
 import { fetchCustomers, fetchEvents } from '@/features/admin-crm/crm.service';
 import { centsFromCurrencyInput, currencyInputFromCents } from '@/features/admin-proposals/currency';
 import {
@@ -173,7 +174,7 @@ export function AdminProposalsPage() {
           <FieldGrid>
             <Field><label>Cliente<select required value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value, eventId: undefined })}><option value="">Selecione</option>{customers.data?.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label></Field>
             <Field><label>Evento<select value={form.eventId ?? ''} onChange={(event) => chooseEvent(event.target.value)}><option value="">Sem evento</option>{events.data?.filter((item) => item.customerId === form.customerId).map((item) => <option value={item.id} key={item.id}>{formatAdminControlledValue(item.eventType)}</option>)}</select></label></Field>
-            <Field><label>Validade<input required type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label></Field>
+            <Field><label>Validade<AdminNativeDateTimeInput required type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label></Field>
             {detail.data?.responsibleNameSnapshot ? <ReadOnly><span>Responsável</span><strong>{detail.data.responsibleNameSnapshot}</strong>{detail.data.responsibleTitleSnapshot ? <small>{detail.data.responsibleTitleSnapshot}</small> : null}</ReadOnly> : null}
           </FieldGrid>
           {form.pricingMode === 'PER_GUEST' ? <PerGuestEditor form={form} setForm={setForm} subtotal={subtotal} total={total} installmentTotal={installmentTotal} installmentAmounts={installmentAmounts} menuGroups={menuGroups} paymentMethods={availablePaymentMethods} snapshots={snapshots} moveService={moveService} updateInstallment={updateInstallment} togglePaymentMethod={togglePaymentMethod} /> : <ItemizedEditor form={form} setForm={setForm} subtotal={subtotal} total={total} updateItem={updateItem} />}
