@@ -1,79 +1,104 @@
 # Paladar Buffet Web
 
-Aplicação web completa do Paladar Buffet, com experiência pública para apresentação dos serviços e solicitação de orçamento, além de um painel administrativo responsivo para a operação comercial.
+## Descrição
+
+Aplicação web do Paladar Buffet que reúne o site institucional, a solicitação pública de orçamento com escolha de cardápio e um painel para a operação comercial do buffet. O painel acompanha solicitações, clientes, eventos, propostas e configurações em desktop e celular.
 
 ## Demonstração
 
-- Site público: [buffetpaladar.com.br](https://buffetpaladar.com.br)
+### Site público
+
+<p align="center">
+  <a href="docs/screenshots/01-home-desktop-dark.png"><img src="docs/screenshots/01-home-desktop-dark.png" width="900" alt="Página inicial do Paladar Buffet no desktop, em tema escuro"></a>
+</p>
+
+### Orçamento e cardápio
+
+<p align="center">
+  <a href="docs/screenshots/04-quote-menu-desktop-light.png"><img src="docs/screenshots/04-quote-menu-desktop-light.png" width="900" alt="Seleção de opções do cardápio no formulário público de orçamento"></a>
+</p>
+
+### Gestão administrativa
+
+<p align="center">
+  <a href="docs/screenshots/05-dashboard-desktop-light.png"><img src="docs/screenshots/05-dashboard-desktop-light.png" width="900" alt="Dashboard administrativo no desktop"></a>
+</p>
+
+<p align="center">
+  <a href="docs/screenshots/07-request-details-desktop-light.png"><img src="docs/screenshots/07-request-details-desktop-light.png" width="900" alt="Detalhes de uma solicitação no painel administrativo"></a>
+</p>
+
+<p align="center">
+  <a href="docs/screenshots/10-proposal-editor-desktop-light.png"><img src="docs/screenshots/10-proposal-editor-desktop-light.png" width="900" alt="Editor de proposta comercial no desktop"></a>
+</p>
+
+<p align="center">
+  <a href="docs/screenshots/11-settings-menu-desktop-light.png"><img src="docs/screenshots/11-settings-menu-desktop-light.png" width="900" alt="Configuração de cardápio no painel administrativo"></a>
+</p>
+
+### Experiência mobile
+
+<p align="center">
+  <a href="docs/screenshots/02-home-mobile-light.jpeg"><img src="docs/screenshots/02-home-mobile-light.jpeg" width="28%" alt="Página inicial no celular, em tema claro"></a>
+  <a href="docs/screenshots/16-dashboard-mobile-dark.jpeg"><img src="docs/screenshots/16-dashboard-mobile-dark.jpeg" width="28%" alt="Dashboard administrativo no celular, em tema escuro"></a>
+  <a href="docs/screenshots/20-proposal-mobile-dark.jpeg"><img src="docs/screenshots/20-proposal-mobile-dark.jpeg" width="28%" alt="Edição de propostas no celular"></a>
+</p>
+
+### Proposta comercial
+
+<p align="center">
+  <a href="docs/screenshots/14-proposal-pdf-page-02.png"><img src="docs/screenshots/14-proposal-pdf-page-02.png" width="500" alt="Página de uma proposta comercial em PDF, com serviços, valores e condições de pagamento"></a>
+</p>
 
 ## Funcionalidades
 
 ### Site público
 
-- Home institucional responsiva com identidade e acervo oficial do Paladar Buffet
-- Apresentação de eventos, cardápios, história, galeria e processo de atendimento
-- Formulário público de orçamento com validação, consentimento de privacidade e proteção anti-spam
-- Catálogo dinâmico de cardápio com limites de seleção por grupo
-- Política de Privacidade e página 404 personalizada
-- Navegação adaptada para desktop, tablet e celular
+- Página institucional responsiva com apresentação de serviços e galeria.
+- Orçamento público com validação de campos, consentimento de privacidade e seleção dinâmica de cardápio.
+- Navegação adaptada a desktop, tablet e celular; política de privacidade e página 404 própria.
 
-### Painel administrativo
+### Administração
 
-- Autenticação por senha e Google para contas previamente autorizadas
-- Recuperação e troca obrigatória de senha inicial
-- Dashboard com indicadores e solicitações recentes
-- Gestão de solicitações, clientes e eventos
-- Conversão de solicitação em cliente e evento
-- Propostas por itens e por valor por convidado
-- Cálculos em BRL, ajustes, parcelas, serviços e formas de pagamento
-- Preservação de snapshots comerciais do cardápio e dos pagamentos
-- Download de proposta comercial em PDF
-- Configuração administrativa de cardápios e formas de pagamento
-- Perfil, tema claro/escuro persistido e gestão das contas administrativas
+- Login por senha para contas autorizadas, recuperação e troca de senha.
+- Dashboard, gestão de solicitações, clientes e eventos.
+- Propostas comerciais, configuração de cardápios e formas de pagamento, perfil e administração das contas autorizadas.
+- Tema claro/escuro persistido e atualização de dados ao retornar ao painel ou por ação manual.
+
+### Propostas
+
+- Precificação por convidado (`PER_GUEST`) e leitura/edição de propostas legadas por itens (`ITEMIZED`).
+- Serviços incluídos, ajustes de valor, parcelas e responsável comercial.
+- Histórico preservado por snapshots de cardápio, pagamentos e responsável; download em PDF.
+
+### Experiência
+
+- Painel responsivo com navegação mobile e manifest de instalação restrito às rotas administrativas.
+- Ícones e metadados para atalhos e compartilhamento; não há suporte offline por service worker.
 
 ## Tecnologias
 
-- React 19
-- TypeScript
-- Vite
-- React Router
-- TanStack Query
-- React Hook Form e Zod
-- styled-components
-- Axios
-- Vitest e React Testing Library
-- Playwright
+React 19, TypeScript, Vite, React Router, TanStack Query, styled-components, Axios, React Hook Form, Zod, Vitest, React Testing Library e Playwright.
 
 ## Estrutura
 
 ```text
 src/
-  app/          providers e configuração global
+  app/          providers e consultas
   components/   componentes compartilhados
   features/     serviços e contratos por domínio
-  layouts/      estruturas pública e administrativa
-  pages/        páginas públicas, autenticação e Admin
-  routes/       roteamento e proteção de acesso
+  layouts/      layouts público e administrativo
+  pages/        páginas e formulários
+  routes/       navegação e proteção de rotas
   services/     cliente HTTP e serviços transversais
-  styles/       temas, tokens e estilos globais
+  styles/       temas e estilos globais
   test/         infraestrutura de testes
 e2e/            cenários de navegação e responsividade
-public/         assets oficiais e configuração do host
+public/         assets oficiais, ícones e manifest
+docs/
+  screenshots/  acervo visual do projeto
 ```
-
-## Segurança no cliente
-
-- Sessão mantida pela API em cookie HttpOnly
-- Token CSRF enviado nas mutações administrativas
-- Nenhum cadastro público de administrador
-- Rotas administrativas protegidas
-- Mensagens públicas sem detalhes internos da API
-- Metadados `noindex` nas áreas restritas
-
-## Qualidade
-
-O projeto possui testes unitários, testes de integração de componentes e cenários E2E para os fluxos públicos, administrativos, comerciais e responsivos.
 
 ## Autor
 
-[André Branches](https://github.com/branchescunha)
+André Vinícius Branches Cunha
