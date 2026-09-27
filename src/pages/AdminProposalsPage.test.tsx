@@ -106,14 +106,26 @@ describe('AdminProposalsPage', () => {
     expect(screen.queryByRole('button', { name: 'Adicionar item' })).not.toBeInTheDocument();
   });
 
-  it('keeps the native validity control shrinkable inside the proposal form', () => {
+  it('keeps visual spacing outside the native validity control', () => {
     renderWithProviders(<AdminProposalsPage />);
 
-    expect(screen.getByLabelText('Validade')).toHaveStyle({
+    const control = screen.getByLabelText('Validade');
+    expect(control).toHaveAttribute('type', 'date');
+    expect(control).toHaveStyle({
       display: 'block',
       inlineSize: '100%',
       minInlineSize: '0',
-      maxInlineSize: '100%'
+      maxInlineSize: '100%',
+      boxSizing: 'border-box',
+      border: '0',
+      paddingInline: '0'
+    });
+    expect(control.parentElement).toHaveStyle({
+      display: 'flex',
+      inlineSize: '100%',
+      minInlineSize: '0',
+      maxInlineSize: '100%',
+      boxSizing: 'border-box'
     });
   });
 

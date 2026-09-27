@@ -28,11 +28,11 @@ describe('public install and sharing metadata', () => {
     expect(metaContent(document, 'name', 'twitter:description')).toBe(description);
     expect(metaContent(document, 'name', 'twitter:image')).toBe(socialImageUrl);
     expect(linkHref(document, 'canonical')).toBe(siteUrl);
+    expect(document.querySelector('link[rel="manifest"]')).toBeNull();
 
     const localAssets = [
       linkHref(document, 'icon'),
       linkHref(document, 'apple-touch-icon'),
-      linkHref(document, 'manifest'),
       '/assets/paladar/owner-waiter-hero.png'
     ];
 

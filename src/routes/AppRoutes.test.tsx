@@ -43,9 +43,45 @@ vi.mock('@/pages/AdminHomePage', () => ({
   AdminHomePage: () => <h1>Início administrativo</h1>
 }));
 
+vi.mock('@/pages/PublicHomePage', () => ({ PublicHomePage: () => <h1>Início público</h1> }));
+vi.mock('@/pages/QuotePage', () => ({ QuotePage: () => <h1>Orçamento</h1> }));
+vi.mock('@/pages/LoginPage', () => ({ LoginPage: () => <h1>Login</h1> }));
+
 describe('AppRoutes', () => {
   beforeEach(() => {
     useCurrentAdminMock.mockReturnValue({ isLoading: false, data: null });
+    document.querySelectorAll('link[rel="manifest"]').forEach((link) => link.remove());
+  });
+
+  it.each(['/', '/orcamento', '/login'])('does not associate the Admin manifest with public route %s', async (path) => {
+    const manifest = document.createElement('link');
+    manifest.rel = 'manifest';
+    manifest.href = '/manifest.webmanifest';
+    document.head.append(manifest);
+
+    renderWithProviders(<AppRoutes />, [path]);
+
+    await waitFor(() => expect(document.querySelector('link[rel="manifest"]')).not.toBeInTheDocument());
+  });
+
+  it.each(['/admin', '/admin/quotes'])('associates the Admin manifest with administrative route %s', async (path) => {
+    useCurrentAdminMock.mockReturnValue({
+      isLoading: false,
+      data: {
+        id: 'admin-1',
+        name: 'Admin',
+        email: 'admin@paladarbuffet.com',
+        role: 'ADMIN',
+        avatarUrl: null,
+        mustChangePassword: false
+      }
+    });
+
+    renderWithProviders(<AppRoutes />, [path]);
+
+    await waitFor(() =>
+      expect(document.querySelector('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest')
+    );
   });
 
   it.each(['/login', '/admin', '/admin/quotes'])('marks restricted route %s as noindex', async (path) => {

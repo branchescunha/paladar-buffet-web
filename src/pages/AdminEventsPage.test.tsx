@@ -39,17 +39,30 @@ describe('AdminEventsPage deletion', () => {
     expect(await screen.findByText('Casamento')).toBeInTheDocument();
   });
 
-  it('keeps native date and time controls shrinkable inside the event form', () => {
+  it('keeps visual spacing outside the native date and time controls', () => {
     renderWithProviders(<AdminEventsPage />);
 
-    for (const control of [screen.getByLabelText('Data'), screen.getByLabelText('Horário')]) {
+    for (const [control, type] of [
+      [screen.getByLabelText('Data'), 'date'],
+      [screen.getByLabelText('Horário'), 'time']
+    ] as const) {
+      expect(control).toHaveAttribute('type', type);
       expect(control).toHaveStyle({
         display: 'block',
         inlineSize: '100%',
         minInlineSize: '0',
-        maxInlineSize: '100%'
+        maxInlineSize: '100%',
+        boxSizing: 'border-box',
+        border: '0',
+        paddingInline: '0'
       });
-      expect(control.parentElement).toHaveStyle({ minWidth: '0' });
+      expect(control.parentElement).toHaveStyle({
+        display: 'flex',
+        inlineSize: '100%',
+        minInlineSize: '0',
+        maxInlineSize: '100%',
+        boxSizing: 'border-box'
+      });
     }
   });
 

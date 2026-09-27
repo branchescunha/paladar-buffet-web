@@ -32,6 +32,7 @@ const futureRoutes = [
 export function AppRoutes() {
   return (
     <>
+      <AdminManifestLink />
       <RobotsMeta />
       <ScrollRestoration />
       <Routes>
@@ -61,6 +62,32 @@ export function AppRoutes() {
       </Routes>
     </>
   );
+}
+
+function AdminManifestLink() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const existingManifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+
+    if (!isAdminRoute) {
+      existingManifest?.remove();
+      return;
+    }
+
+    const manifest = existingManifest ?? document.createElement('link');
+    manifest.rel = 'manifest';
+    manifest.href = '/manifest.webmanifest';
+
+    if (!existingManifest) {
+      document.head.append(manifest);
+    }
+
+    return () => manifest.remove();
+  }, [pathname]);
+
+  return null;
 }
 
 function RobotsMeta() {
