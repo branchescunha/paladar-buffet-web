@@ -1,7 +1,9 @@
-import { CalendarDays, ClipboardList, FileText, KeyRound, LayoutDashboard, LogOut, Menu, Moon, Settings, ShieldCheck, Sun, UserRound, UsersRound, X } from 'lucide-react';
+import { CalendarDays, ClipboardList, FileText, KeyRound, LayoutDashboard, LogOut, Menu, Moon, RefreshCw, Settings, ShieldCheck, Sun, UserRound, UsersRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
+import { shouldRefreshAdminQuery } from '@/app/query-client';
 import { Button } from '@/components/Button';
 import { useCurrentAdmin, useLogout } from '@/features/auth/useAuth';
 import { darkTheme, lightTheme } from '@/styles/theme';
@@ -17,11 +19,19 @@ const baseNavItems = [
 export function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem(adminThemeStorageKey) === 'dark');
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const { data: admin } = useCurrentAdmin();
   const logout = useLogout();
   const navigate = useNavigate();
   useEffect(() => { window.localStorage.setItem(adminThemeStorageKey, darkMode ? 'dark' : 'light'); }, [darkMode]);
   async function handleLogout() { await logout.mutateAsync(); navigate('/login', { replace: true }); }
+  async function handleRefresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    try { await queryClient.refetchQueries({ type: 'active', predicate: shouldRefreshAdminQuery }, { cancelRefetch: false }); }
+    finally { setRefreshing(false); }
+  }
 
   return <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
     <Shell>
@@ -36,6 +46,7 @@ export function AdminLayout() {
           <UserInfo><span>{admin?.name}</span><small>{admin?.email}</small><Role>Administrador</Role></UserInfo>
           <HeaderActions>
             <IconButton type="button" aria-label={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} title={darkMode ? 'Usar tema claro' : 'Usar tema escuro'} onClick={() => setDarkMode((current) => !current)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</IconButton>
+            <RefreshButton type="button" aria-label="Atualizar dados" title="Atualizar dados" onClick={handleRefresh} disabled={refreshing}><RefreshCw size={18} /></RefreshButton>
             <PasswordButton as={Link} to="/change-password" aria-label="Alterar senha" title="Alterar senha"><KeyRound size={18} /></PasswordButton>
             <LogoutButton type="button" aria-label="Sair" title="Sair" onClick={handleLogout} disabled={logout.isPending}><LogOut size={18} /><span>Sair</span></LogoutButton>
           </HeaderActions>
@@ -58,6 +69,7 @@ const UserInfo = styled.div`display:grid;min-width:0;text-align:right;span,small
 const Role = styled.small`color:${({ theme }) => theme.colors.accent} !important;font-weight:700;`;
 const HeaderActions = styled.div`display:contents;@media(max-width:${({ theme }) => theme.breakpoints.lg}){display:flex;gap:.375rem;}`;
 const IconButton = styled.button`display:inline-flex;width:2.5rem;height:2.5rem;align-items:center;justify-content:center;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:transparent;color:${({ theme }) => theme.colors.textStrong};@media(max-width:${({ theme }) => theme.breakpoints.lg}){width:2.75rem;height:2.75rem;}`;
+const RefreshButton = styled(IconButton)`display:none;@media(max-width:${({ theme }) => theme.breakpoints.lg}){display:inline-flex;}`;
 const PasswordButton = styled(IconButton)`@media(max-width:${({ theme }) => theme.breakpoints.lg}){display:none;}`;
 const LogoutButton = styled(Button)`@media(max-width:${({ theme }) => theme.breakpoints.lg}){width:2.75rem;height:2.75rem;min-height:2.75rem;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:transparent;color:${({ theme }) => theme.colors.textStrong};padding:0;span{display:none;}}`;
 const Main = styled.main`min-width:0;overflow-y:auto;padding:${({ theme }) => theme.spacing.xl};input,select,textarea{max-width:100%}input[type='date'],input[type='time'],input[type='datetime-local']{display:block;width:100%;min-width:0;max-width:100%;min-inline-size:0;max-inline-size:100%}@media(max-width:${({ theme }) => theme.breakpoints.lg}){overflow-x:hidden;padding-top:calc(4rem + env(safe-area-inset-top) + ${({ theme }) => theme.spacing.xl});}@media(max-width:${({ theme }) => theme.breakpoints.sm}){padding:calc(4rem + env(safe-area-inset-top) + ${({ theme }) => theme.spacing.lg}) ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};h1{font-size:1.75rem!important}h2{font-size:1.125rem}h3{font-size:1rem}label{font-size:.875rem}}`;

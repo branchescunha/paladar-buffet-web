@@ -34,7 +34,38 @@ export function AdminUsersPage() {
 const Page = styled.section`display:grid;gap:${({ theme }) => theme.spacing.xl};h1{margin:0;color:${({ theme }) => theme.colors.textStrong}}p{margin:${({ theme }) => theme.spacing.sm} 0 0;color:${({ theme }) => theme.colors.textMuted}}`;
 const Eyebrow = styled.span`color:${({ theme }) => theme.colors.accent};font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;`;
 const Panel = styled.section`min-width:0;border:1px solid ${({ theme }) => theme.colors.border};border-radius:${({ theme }) => theme.radius.md};background:${({ theme }) => theme.colors.surface};padding:${({ theme }) => theme.spacing.lg};@media(max-width:${({ theme }) => theme.breakpoints.sm}){padding:${({ theme }) => theme.spacing.md};}`;
-const Table = styled.table`width:100%;border-collapse:collapse;color:${({ theme }) => theme.colors.textStrong};th,td{min-width:0;border-bottom:1px solid ${({ theme }) => theme.colors.border};padding:${({ theme }) => theme.spacing.md};text-align:left;overflow-wrap:break-word}th{color:${({ theme }) => theme.colors.textMuted};font-size:.78rem;text-transform:uppercase}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}@media(max-width:${({ theme }) => theme.breakpoints.md}){thead{display:none}tbody,tr,td{display:block;width:100%}tr{border-bottom:1px solid ${({ theme }) => theme.colors.border};padding:${({ theme }) => theme.spacing.sm} 0}td{display:grid;grid-template-columns:5.5rem minmax(0,1fr);gap:${({ theme }) => theme.spacing.sm};border:0;padding:${({ theme }) => theme.spacing.xs} 0;font-size:.875rem}td::before{color:${({ theme }) => theme.colors.textMuted};font-size:.7rem;font-weight:800;text-transform:uppercase}td:nth-child(1)::before{content:'Nome'}td:nth-child(2)::before{content:'E-mail'}td:nth-child(3)::before{content:'Função'}td:nth-child(4)::before{content:'Cargo'}td:nth-child(5)::before{content:'Status'}td:nth-child(6)::before{content:'Ação'}}`;
+const Table = styled.table`
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: ${({ theme }) => theme.colors.textStrong};
+  th, td {
+    min-width: 0;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.sm};
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  th { color: ${({ theme }) => theme.colors.textMuted}; font-size: .78rem; text-transform: uppercase; }
+  th:nth-child(3) { width: 7.5rem; }
+  th:nth-child(5) { width: 5rem; }
+  th:nth-child(6) { width: 7rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media(max-width:${({ theme }) => theme.breakpoints.md}) {
+    table-layout: auto;
+    thead { display: none; }
+    tbody, tr, td { display: block; width: 100%; }
+    tr { border-bottom: 1px solid ${({ theme }) => theme.colors.border}; padding: ${({ theme }) => theme.spacing.sm} 0; }
+    td { display: grid; grid-template-columns: 5.5rem minmax(0,1fr); gap: ${({ theme }) => theme.spacing.sm}; border: 0; padding: ${({ theme }) => theme.spacing.xs} 0; font-size: .875rem; }
+    td::before { color: ${({ theme }) => theme.colors.textMuted}; font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+    td:nth-child(1)::before { content: 'Nome'; }
+    td:nth-child(2)::before { content: 'E-mail'; }
+    td:nth-child(3)::before { content: 'Função'; }
+    td:nth-child(4)::before { content: 'Cargo'; }
+    td:nth-child(5)::before { content: 'Status'; }
+    td:nth-child(6)::before { content: 'Ação'; }
+  }
+`;
 const Action = styled.button`min-height:2.25rem;width:max-content;max-width:100%;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:transparent;color:${({ theme }) => theme.colors.textStrong};font-weight:700;padding:0 ${({ theme }) => theme.spacing.md};`;
 const Feedback = styled.p`margin:0 !important;`;
 const Error = styled.p`margin:0 !important;color:${({ theme }) => theme.colors.danger} !important;`;
