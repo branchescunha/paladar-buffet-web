@@ -66,7 +66,7 @@ const Table = styled.table`
     td:nth-child(6)::before { content: 'Ação'; }
   }
 `;
-const Action = styled.button`min-height:2.25rem;width:max-content;max-width:100%;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:transparent;color:${({ theme }) => theme.colors.textStrong};font-weight:700;padding:0 ${({ theme }) => theme.spacing.md};`;
+const Action = styled.button`min-height:2.25rem;width:max-content;max-width:100%;border:1px solid ${({ theme }) => theme.colors.borderStrong};border-radius:${({ theme }) => theme.radius.md};background:transparent;color:${({ theme }) => theme.colors.textStrong};font-weight:700;padding:0 ${({ theme }) => theme.spacing.sm};overflow-wrap:normal;white-space:nowrap;`;
 const Feedback = styled.p`margin:0 !important;`;
 const Error = styled.p`margin:0 !important;color:${({ theme }) => theme.colors.danger} !important;`;
 const Message = styled.p<{ $type: 'success' | 'error' }>`margin:${({ theme }) => theme.spacing.md} 0 0 !important;color:${({ $type, theme }) => $type === 'success' ? theme.colors.accent : theme.colors.danger} !important;font-weight:700;`;

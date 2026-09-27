@@ -33,6 +33,11 @@ for (const width of [1280, 1366, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await openUsers(page, () => admin.commercialTitle);
 
+    const actionButton = page.getByRole('button', { name: 'Desativar' });
+    await expect(actionButton).toHaveText('Desativar');
+    await expect(actionButton).toHaveCSS('white-space', 'nowrap');
+    await expect(page.getByRole('button', { name: 'Atualizar dados' })).toBeHidden();
+
     const bounds = await page.locator('main table').evaluate((table) => {
       const panel = table.parentElement!;
       const action = table.querySelector('tbody button')!;
@@ -80,6 +85,8 @@ for (const width of [320, 375, 390, 430]) {
     expect(new Set(boxes.map(({ y }) => Math.round(y))).size).toBe(1);
     expect(boxes.at(-1)!.x + boxes.at(-1)!.width).toBeLessThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await expect(page.getByRole('button', { name: 'Atualizar dados' }).locator('svg')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Desativar' })).toHaveCSS('white-space', 'nowrap');
   });
 }
 
